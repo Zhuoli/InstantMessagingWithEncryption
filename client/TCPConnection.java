@@ -5,48 +5,37 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class TCPConnection {
-	static TCPConnection instance=null;
 	private Socket MyClient=null;
-	public DataOutputStream out2server= null;
-	public BufferedReader inFromServer=null;
-	final String ServerName = "127.0.0.1";
-	final int port = 2048;
+	private DataOutputStream out2server= null;
+	private BufferedReader inFromServer=null;
+	private Socket clientSocket=null;
 	
-	private TCPConnection(){
-	    try {
-	           MyClient = new Socket(ServerName, port);
-	    }
-	    catch (IOException e) {
-	        System.out.println(e);
-	        System.exit(-1);
-	    }
-	    try {
-			out2server=new DataOutputStream(instance.MyClient.getOutputStream());
-		} catch (IOException e) {
+	protected TCPConnection(String host, int port){
+		try {
+		    clientSocket=new Socket(host,port);
+			out2server = new DataOutputStream(clientSocket.getOutputStream());
+			inFromServer = new BufferedReader(new InputStreamReader(
+							clientSocket.getInputStream()));
+		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-	    try {
-			inFromServer = new BufferedReader(new InputStreamReader(instance.MyClient.getInputStream()));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	    
 	}
-	public static TCPConnection getInstance(){
-		if(instance==null){
-			instance=new TCPConnection();
-		}
-		return instance;
+	public static TCPConnection getInstance(String host, int port){
+			return new TCPConnection(host,port);
 	}
 	
-	public boolean write2server(String message){
+	public boolean sendMessage(String message){
 
 		try {
-			instance.out2server.writeBytes(message);
+			this.out2server.writeBytes(message);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			if(Client.DEBUG){
@@ -56,16 +45,24 @@ public class TCPConnection {
 		}
 		return true;
 	}
-	
 	public String readMessage(){
 		String ret="";
 		try {
-			instance.inFromServer.readLine();
+			ret = this.inFromServer.readLine();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return ret;
 	}
-	
+	public boolean close(){
+		try {
+			this.clientSocket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return true;
+	}
+
 }

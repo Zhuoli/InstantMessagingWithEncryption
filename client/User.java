@@ -10,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 public class User {
 	private String name="";
 	private String hashKey="";
+	private BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 	// user instance
 	private static User user=null;
 	private User(String name, String hashcode){
@@ -62,6 +63,17 @@ public class User {
 	}
 	public String getUsername(){
 		return user.name;
+	}
+	
+	public String getUserInput(){
+		try {
+			return inFromUser.readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		return "";
 	}
 }
 		
