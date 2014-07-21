@@ -7,6 +7,7 @@ public class Client2Server  extends TCPConnection implements Runnable{
 	static Client2Server connection = null;
 	static final String hostname= "129.10.117.100";
 	static final int port=2048;
+	boolean close=false;
 	
 	private Client2Server(String host, int port){
 		super(host,port);
@@ -20,7 +21,6 @@ public class Client2Server  extends TCPConnection implements Runnable{
 	}
 	// authenticate	 the user
 	public  boolean authTheUser(User user){
-		boolean close=false;
 		// new thread to receive message from server
 		new Thread(this).start();
 		// while loop to send message to server
@@ -41,6 +41,11 @@ public class Client2Server  extends TCPConnection implements Runnable{
 	    String responseLine;
 	    while ((responseLine = connection.readMessage()) != null) {
 	      System.out.println(responseLine);
+	      if (responseLine.startsWith("/quit")) {
+	          break;
+	       }
 	    }
+	    System.out.println("Client Gonna Quit");
+	    close=true;
 	}
 }
