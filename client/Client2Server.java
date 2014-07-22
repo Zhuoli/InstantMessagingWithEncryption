@@ -14,6 +14,7 @@ public class Client2Server  implements Runnable{
 	static private Client2Server instance = null;
 	static private String hostname= "";
 	static private int port=0;
+	static private int timeout=2000;
 	static private boolean close=false;
 	TCPConnection connection =null;
 	
@@ -49,7 +50,7 @@ public class Client2Server  implements Runnable{
 	public  boolean authTheUser(User user){
 		this.user=user;
 		if(connection==null){
-			connection = TCPConnection.setUpConnection(hostname, port);
+			connection = TCPConnection.setUpConnection(hostname, port,timeout);
 		}
 		//start auth...
 		connection.sendMessage("my public key, Random number");
