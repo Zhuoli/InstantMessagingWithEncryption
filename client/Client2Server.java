@@ -52,7 +52,7 @@ public class Client2Server  extends TCPConnection implements Runnable{
 		//new Thread(this).start();
 		ExecutorService executor = Executors.newFixedThreadPool(2);
 		// send thread
-		executor.submit(new Runnable(User user){
+		executor.submit(new Runnable(){
 
 			@Override
 			public void run() {
