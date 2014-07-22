@@ -18,6 +18,7 @@ public class Server {
 			if(tcpSocket==null){
 				continue;
 			}
+			System.out.println("New user has joined");
 			executor.submit(new Task(tcpSocket, count++));
 		 }
 	}

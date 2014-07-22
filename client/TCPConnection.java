@@ -21,10 +21,16 @@ public class TCPConnection {
 							clientSocket.getInputStream()));
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			if(Client.DEBUG){
+				e.printStackTrace();
+			}
+			System.err.println("Unknown Host:" + host +":"+port);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			if(Client.DEBUG){
+				e.printStackTrace();
+			}
+			System.err.println("TCP IO Error");
 		}
 	    
 	}
@@ -51,7 +57,9 @@ public class TCPConnection {
 			ret = this.inFromServer.readLine();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			if(Client.DEBUG){
+				e.printStackTrace();
+			}
 		}
 		return ret;
 	}

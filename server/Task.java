@@ -16,16 +16,13 @@ public class Task implements Runnable{
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		boolean close=false;
 		clientSocket.writeMessage("Welcome new users, ID: " + id +'\n');
-		while(!close){
-			String line = clientSocket.readMessage();
-		     if (line.startsWith("/quit")) {
-		   	  close=true;
-	          break;
-	        }
+
+		String line=null;
+		while((line = clientSocket.readMessage())!=null)
+		{ 
 			System.out.println("Client id: " + id + ":  "  + line);
-			close = !clientSocket.writeMessage("Message received: " + line+ '\n');
+			clientSocket.writeMessage("Message received: " + line+ '\n');
 		}
 		System.out.println("Client id: " + id + " quit the chart");
 		clientSocket.close();

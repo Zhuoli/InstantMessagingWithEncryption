@@ -21,7 +21,7 @@ public class ClientSocket {
 	}
 	
 	public String readMessage(){
-		String ret="";
+		String ret=null;
 		try {
 			ret=in.readLine();
 		} catch (IOException e) {
