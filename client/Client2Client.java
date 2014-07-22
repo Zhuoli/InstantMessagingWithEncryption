@@ -12,7 +12,7 @@ public class Client2Client {
 		return instance;
 	}
 	
-	public static boolean setUpListen(){
+	public boolean setUpListen(){
 		
 		return true;
 	}

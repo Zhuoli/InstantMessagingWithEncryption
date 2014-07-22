@@ -13,7 +13,7 @@ public class TCPConnection {
 	private BufferedReader inFromServer=null;
 	private Socket clientSocket=null;
 	
-	protected TCPConnection(String host, int port){
+	private TCPConnection(String host, int port){
 		try {
 		    clientSocket=new Socket(host,port);
 			out2server = new DataOutputStream(clientSocket.getOutputStream());
@@ -34,7 +34,7 @@ public class TCPConnection {
 		}
 	    
 	}
-	public static TCPConnection getInstance(String host, int port){
+	public static TCPConnection setUpConnection(String host, int port){
 			return new TCPConnection(host,port);
 	}
 	

@@ -13,7 +13,7 @@ public class Client {
 		System.out.println("Welcome to the Encypted Instant Messaging App.\nClient Running...");
 		User user = User.login();
 		if(Client2Server.getInstance().authTheUser(user)){
-			// set up a listen port to connection from other clients
+			// set up a listen socket port to connection from other clients
 			Client2Client.getInstance().setUpListen();
 			// interact console
 			while(true){

@@ -9,18 +9,20 @@ import java.util.concurrent.Executors;
 
 
 
-public class Client2Server  extends TCPConnection implements Runnable{
+public class Client2Server  implements Runnable{
 	
-	static Client2Server connection = null;
-	static String hostname= "";
-	static int port=0;
-	static boolean close=false;
+	static private Client2Server instance = null;
+	static private String hostname= "";
+	static private int port=0;
+	static private boolean close=false;
+	TCPConnection connection =null;
+	
+	private User user=null;
 	
 	private Client2Server(String host, int port){
-		super(host,port);
 	}
 	public static Client2Server getInstance(){
-		if(connection==null){
+		if(instance==null){
 			try {
 				BufferedReader br = new BufferedReader(new FileReader("./src/client/setting.conf"));
 				hostname = br.readLine().split(":")[1].trim();
@@ -40,38 +42,38 @@ public class Client2Server  extends TCPConnection implements Runnable{
 				System.err.println("Client configure file 'setting.conf' format not correct:\nhostname: IP\nport: number");
 				return null;
 			}
-			connection = new Client2Server(hostname,port);
 		}
-		return connection;
+		return instance;
 	}
 	// authenticate	 the user
 	public  boolean authTheUser(User user){
-		if(connection==null)
+		this.user=user;
+		if(connection==null){
+			connection = TCPConnection.setUpConnection(hostname, port);
+		}
+		//start auth...
+		connection.sendMessage("my public key, Random number");
+		String rec = connection.readMessage();
+		if(rec!="Random Number"){
+			this.connectionTerminate();
+			System.out.println("Auth Failed: Server Can't be authered");
 			return false;
-		// new thread to receive message from server
-		//new Thread(this).start();
-		ExecutorService executor = Executors.newFixedThreadPool(2);
-		// send thread
-		executor.submit(new Runnable(){
-
-			@Override
-			public void run() {
-				// while loop to send message to server
-				while(!close){
-					String input=user.getUserInput()+'\n';
-					connection.sendMessage(input);
-					
-				}
-			}
-			
-		});
-
-		System.out.println("connection closing...");
-		connection.close();
-		System.out.println("Done");
+		}
+		connection.sendMessage(user.getUsername()+" " + user.getHashedKey());
+		rec=connection.readMessage();
+		if(rec!="TRUE"){
+			this.connectionTerminate();
+			System.out.println("Auth Failed: User Can't be authered");
+			return false;
+		}
+		// ...auth done
+		this.connectionTerminate();
 		return true;
 	}
-
+	public void connectionTerminate(){
+		this.connection.close();
+		this.connection=null;
+	}
 	@Override
 	public void run() {
 	    /*
