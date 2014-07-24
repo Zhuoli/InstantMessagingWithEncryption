@@ -10,8 +10,10 @@ import java.util.LinkedList;
 
 public class TCPConnection {
 	private Socket clientSocket=null;
+	private TCPSender sender=null;
+	private TCPReceiver receiver=null;
 	private Thread senderThread=null;
-	private Thread receiverThread=null;
+	private Thread receiverThread = null;
 	
 	private LinkedList<String> receive_messages =null;
 	private LinkedList<String> sender_messages=null;
@@ -19,7 +21,7 @@ public class TCPConnection {
 	private TCPConnection(String host, int port,int timeout){
 		try {
 		    clientSocket=new Socket(host,port);
-		    clientSocket.setSoTimeout(timeout);
+		   // clientSocket.setSoTimeout(timeout);
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			if(Client.DEBUG){
@@ -42,85 +44,46 @@ public class TCPConnection {
 	}
 	
 	private void initThreads(){
-		class SenderTask implements Runnable {
-	        LinkedList<String> taskQueue=null;
-	        DataOutputStream out=null;
-	        SenderTask(LinkedList<String> queue, Socket clientSocket) { 
-	        	taskQueue = queue; 
-				try {
-					out = new DataOutputStream(clientSocket.getOutputStream());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					if(Client.DEBUG){
-						e.printStackTrace();
-					}
-					System.err.println("sender Thread IO initial Error");
-					System.exit(-1);
-				}
-	        }
-	        public void run() {
-	        	while(!taskQueue.isEmpty()){
-	        		try {
-						out.writeBytes(taskQueue.poll());
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						if(Client.DEBUG){
-							e.printStackTrace();
-						}
-						System.err.println("sender Thread IO Error");
-					}
-	        	}
-	        }
-	    }
-		class ReceiverThread implements Runnable{
-			LinkedList<String> recvTask=null;
-		    BufferedReader in=null;
-		    ReceiverThread(LinkedList<String> queue, Socket clientSocket){
-				try {
-					in = new BufferedReader(new InputStreamReader(
-									clientSocket.getInputStream()));
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					if(Client.DEBUG){
-						e.printStackTrace();
-					}
-					System.err.println("receive Thread IO initiate Error");
-					System.exit(-1);
-				}
-		    }
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				
-			}
-			
-		}
-		senderThread = new Thread(new SenderTask(sender_messages,clientSocket));
+		sender=new TCPSender(sender_messages,clientSocket);
+		 senderThread = new Thread(sender);
 		senderThread.start();
+		
+		receiver= new TCPReceiver(receive_messages,clientSocket);
+		 receiverThread = new Thread(receiver);
+		receiverThread.start();
 	}
 	public boolean sendMessage(String message){
-
+		synchronized(sender_messages){
+			sender_messages.add(message);
+			this.sender_messages.notify();
+		}
 		return true;
 	}
 	public String readMessage(){
 		String ret="";
-		try {
-			ret = this.in.readLine();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			if(Client.DEBUG){
-				e.printStackTrace();
-			}
+		synchronized(sender_messages){
+			ret=sender_messages.poll();
 		}
 		return ret;
 	}
 	public boolean close(){
+		senderThread.interrupt();
+		receiverThread.interrupt();
+		try {
+			senderThread.join(3000);
+			receiverThread.join(3000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		try {
 			this.clientSocket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println("TCP connection terminated");
 		return true;
 	}
 

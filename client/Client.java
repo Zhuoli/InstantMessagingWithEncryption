@@ -7,19 +7,36 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Client {
-	static boolean DEBUG=true;
+	static boolean DEBUG=false;
 	
-	public static void main(String[] argvs)throws Exception{
+	// terminate App. properly in case of user interrupting
+	static class ExitHandler extends Thread{
+		private ExitHandler(){
+			super("Exit Handler");
+		}
+		public void run(){
+			Client.terminate();
+		}
+		public static ExitHandler getInstance(){
+			return new ExitHandler();
+		}
+	}
+	
+	public static void main(String[] argvs){
 		System.out.println("Welcome to the Encypted Instant Messaging App.\nClient Running...");
 		User user = User.login();
+		// register the terminate Thread
+		Runtime.getRuntime().addShutdownHook(Client.ExitHandler.getInstance());
 		if(Client2Server.getInstance().authTheUser(user)){
 			// set up a listen socket port to connection from other clients
 			Client2Client.getInstance().setUpListen();
 			// interact console
 			while(true){
-				String userInput = user.getUserInput();
-				Client.processUserInput(userInput,Client2Client.getInstance(),Client2Server.getInstance());
+				//String userInput = user.getUserInput();
+				//Client.processUserInput(userInput,Client2Client.getInstance(),Client2Server.getInstance());
 			}
+		}else{
+			System.out.println("User name or password not correct, please try again");
 		}
 
 	}
@@ -43,5 +60,12 @@ public class Client {
 	}
 	public static String listOnlineUsers(){
 		return "";
+	}
+	private static synchronized void terminate(){
+		if(Client.DEBUG){
+			System.out.println("Hi, terminate works");
+		}
+		Client2Server.getInstance().connectionTerminate();
+		Client2Client.getInstance().connectionTerminate();
 	}
 }

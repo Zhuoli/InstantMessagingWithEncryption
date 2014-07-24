@@ -2,6 +2,9 @@ package client;
 
 public class Client2Client {
 	static private Client2Client instance =null;
+	TCPConnection connection =null;
+	
+	
 	private Client2Client(){
 		
 	}
@@ -19,5 +22,11 @@ public class Client2Client {
 	public boolean send2client(String targetName, String content){
 		
 		return true;
+	}
+	public void connectionTerminate(){
+		if(this.connection!=null){
+			this.connection.close();
+		}
+		this.connection=null;
 	}
 }
