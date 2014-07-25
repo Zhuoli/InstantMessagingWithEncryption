@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 
 public class Client {
-	static boolean DEBUG=true;
+	static boolean DEBUG=false;
 	static Thread c2serverThread=null;
 	static Thread c2clientThread=null;
 	static int clientPort=0;
@@ -28,16 +28,17 @@ public class Client {
 		Integer[] authState = {-1};
 		User user = User.login();
 		// register the terminate Thread
-		Runtime.getRuntime().addShutdownHook(Client.ExitHandler.getInstance());
+		//Runtime.getRuntime().addShutdownHook(Client.ExitHandler.getInstance());
 		try{
 			c2serverThread = new Thread(Client2Server.getInstance(authState,user));
 			c2serverThread.start();
 			synchronized(authState){
-				authState.wait(3000);
+				authState.wait(2000);
 			}
 			if(authState[0]==1){
+				System.out.println("Auth succeed");
 				// set up a listen socket port to connection from other clients
-				c2clientThread = Client2Client.getInstance().setUpListen();
+				//c2clientThread = Client2Client.getInstance().setUpListen();
 				// interact console
 				while(true){
 					//String userInput = user.getUserInput();

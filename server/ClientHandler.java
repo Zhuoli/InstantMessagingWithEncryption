@@ -40,9 +40,9 @@ public class ClientHandler {
 		}
 		return  ret;
 	}
-	public boolean writeMessage(String message){
+	public boolean sendMessage(String message){
 		try {
-			out.writeBytes(message);
+			out.writeBytes(message+'\n');
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.util.Date;
+
+import javax.xml.crypto.Data;
 
 
 
@@ -69,7 +71,7 @@ public class Client2Server implements Runnable{
 		connection.sendMessage("authentication: " + user.getUsername() +":"+user.password);
 		String rec = connection.readMessage();
 		System.out.println("Server: " + rec);
-		if(rec.toLowerCase()!="authentication:true"){
+		if(!rec.toLowerCase().equals("authentication:true")){
 			this.connectionTerminate();
 			if(Client.DEBUG){
 				System.out.println("Auth Failed: Server Can't be authered   "+rec);
@@ -77,7 +79,7 @@ public class Client2Server implements Runnable{
 			return 0;
 		}
 		// ...auth done
-		this.connectionTerminate();
+		//	this.connectionTerminate();
 		return 1;
 	}
 	public void connectionTerminate(){
@@ -92,11 +94,13 @@ public class Client2Server implements Runnable{
 		synchronized(this.authState){
 			this.authState.notifyAll();
 		}
-		while(!Thread.interrupted()){
-			
+		String ret=null;
+		while(!Thread.interrupted() && (ret=connection.readMessage())!=null){
+			System.out.println("Server: " + ret);
 		}
 		if(Client.DEBUG){
 			System.out.println("Client to server Thread interrupted, gonna quit");
 		}
+		this.connectionTerminate();
 	}
 }

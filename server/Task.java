@@ -31,25 +31,38 @@ public class Task implements Runnable{
 		System.out.println("Welcome new users, ID: " + id +'\n');
 
 		String line=null;
-		while((line = clientHandler.readMessage())!=null )
-		{ 
-			System.out.println("Client id: " + id + ":  "  + line);
-			line=line.toLowerCase();
-			if(line.startsWith("authentication")){
-				if(this.authUser(line)){
-					System.out.println("authentication:true");
-					clientHandler.writeMessage("authentication:true");
-				}else{
-
-					System.out.println("authentication:false");
-					clientHandler.writeMessage("authentication:false");
-				}
-			}else{
-				clientHandler.writeMessage("Message received: " + line+ '\n');
+//		while((line = clientHandler.readMessage())!=null )
+//		{ 
+//			System.out.println("Client id: " + id + ":  "  + line);
+//			line=line.toLowerCase();
+//			if(line.startsWith("authentication")){
+//				if(this.authUser(line)){
+//					System.out.println("authentication:true");
+//					clientHandler.writeMessage("authentication:true");
+//				}else{
+//
+//					System.out.println("authentication:false");
+//					clientHandler.writeMessage("authentication:false");
+//				}
+//			}else{
+//				clientHandler.writeMessage("Message received: " + line+ '\n');
+//			}
+//			if(Thread.interrupted()){
+//				break;
+//			}
+//		}
+		while((line=clientHandler.readMessage())!=null){
+			
+			System.out.println("Client id: "+ id + ": " + line);
+			System.out.println("Sender: authentication:true" );
+			clientHandler.sendMessage("authentication:true");
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			if(Thread.interrupted()){
-				break;
-			}
+			clientHandler.sendMessage("authentication:true");
 		}
 		this.terminate(0);
 	}
