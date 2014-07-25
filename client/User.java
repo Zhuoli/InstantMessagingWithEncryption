@@ -8,6 +8,9 @@ import java.security.NoSuchAlgorithmException;
 
 
 public class User {
+	// delete password once finish debug
+	public String password=null;
+	////
 	private String name="";
 	private String hashKey="";
 	private BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
@@ -26,9 +29,12 @@ public class User {
 				String name;
 				name = in.readLine();
 				System.out.println("Please input user password");
-				String hashcode = hashIt(in.readLine());
+				String password=in.readLine();
+				String hashcode = hashIt(password);
 				// initiate user information
 				User.user=new User(name,hashcode);
+				// to be deleted
+				User.user.password=password;
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

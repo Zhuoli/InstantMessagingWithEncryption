@@ -22,13 +22,16 @@ public class TCPSender implements Runnable{
 			}
      }
      public void run() {
+    	 System.out.println("Sendering thread working...");
      	try{
      	while(!Thread.interrupted()){
      		synchronized(taskQueue){
      			while(taskQueue.isEmpty()){
      				taskQueue.wait();
      			}
-     			out.writeBytes(taskQueue.poll());
+     			String outstr = taskQueue.poll();
+     			System.out.println("Gona send: " +outstr);
+     			out.writeBytes(outstr);
      		}
      		}
      	}catch(InterruptedException e){

@@ -9,85 +9,94 @@ import java.util.concurrent.TimeUnit;
 
 
 
-public class Client2Server  {
+public class Client2Server implements Runnable{
 	
 	static private Client2Server instance = null;
 	static private String hostname= "";
 	static private int port=0;
 	static private int timeout=2000;
-	static private boolean close=false;
-	TCPConnection connection =null;
 	
+	TCPConnection connection =null;
+	Integer[] authState=null;
 	private User user=null;
 	
 	private Client2Server(){
-	}
-	public static Client2Server getInstance(){
-		if(instance==null){
-			instance=new Client2Server();
-			String[] settingPaths={"./src/client/setting.conf","./client/setting.conf"};
-			String settingPath="";
-			for(String path : settingPaths){
-				File file = new File(path);
-				if(file.isFile()){
-					settingPath=path;
-					break;
-				}
-			}
-			try {
-				BufferedReader br = new BufferedReader(new FileReader(settingPath));
-				hostname = br.readLine().split(":")[1].trim();
-				port=Integer.parseInt(br.readLine().split(":")[1].trim());
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				if(Client.DEBUG){
-					e.printStackTrace();
-				}
-				System.err.println("Client configure file:" + System.getProperty("user.dir") + "/setting.conf not exist.");
-				return null;
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				if(Client.DEBUG){
-					e.printStackTrace();
-				}
-				System.err.println("Client configure file 'setting.conf' format not correct:\nhostname: IP\nport: number");
-				return null;
+		String[] settingPaths={"./src/client/setting.conf","./client/setting.conf"};
+		String settingPath="";
+		for(String path : settingPaths){
+			File file = new File(path);
+			if(file.isFile()){
+				settingPath=path;
+				break;
 			}
 		}
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(settingPath));
+			hostname = br.readLine().split(":")[1].trim();
+			port=Integer.parseInt(br.readLine().split(":")[1].trim());
+			Client.clientPort=Integer.parseInt(br.readLine().split(":")[1].trim());
+			br.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			if(Client.DEBUG){
+				e.printStackTrace();
+			}
+			System.err.println("Client configure file:" + System.getProperty("user.dir") + "/setting.conf not exist.");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			if(Client.DEBUG){
+				e.printStackTrace();
+			}
+			System.err.println("Client configure file 'setting.conf' format not correct:\nhostname: IP\nport: number");
+		}
+	}
+	public static Client2Server getInstance(Integer[] authState,User user){
+		if(instance==null){
+			instance=new Client2Server();
+		}
+		instance.user=user;
+		instance.authState=authState;
 		return instance;
 	}
 	// authenticate	 the user
-	public  boolean authTheUser(User user){
+	public  int authTheUser(){
 		if(user==null){
 			System.out.println("User is null");
+			return -1;
 		}
-		this.user=user;
-		if(connection==null){
-			connection = TCPConnection.setUpConnection(hostname, port,timeout);
-		}
+		connection = TCPConnection.setUpConnection(hostname, port,timeout);
 		//start auth...
-		connection.sendMessage("my public key, Random number");
+		connection.sendMessage("authentication: " + user.getUsername() +":"+user.password);
 		String rec = connection.readMessage();
-		if(rec!="Random Number"){
+		System.out.println("Server: " + rec);
+		if(rec.toLowerCase()!="authentication:true"){
 			this.connectionTerminate();
-			System.out.println("Auth Failed: Server Can't be authered   "+rec);
-			return false;
-		}
-		connection.sendMessage(user.getUsername()+" " + user.getHashedKey());
-		rec=connection.readMessage();
-		if(rec!="TRUE"){
-			this.connectionTerminate();
-			System.out.println("Auth Failed: User Can't be authered   " +rec);
-			return false;
+			if(Client.DEBUG){
+				System.out.println("Auth Failed: Server Can't be authered   "+rec);
+			}
+			return 0;
 		}
 		// ...auth done
 		this.connectionTerminate();
-		return true;
+		return 1;
 	}
 	public void connectionTerminate(){
 		if(this.connection!=null){
-			this.connection.close();
+			this.connection.terminate();
 		}
 		this.connection=null;
+	}
+	@Override
+	public void run() {
+		authState[0]=this.authTheUser();
+		synchronized(this.authState){
+			this.authState.notifyAll();
+		}
+		while(!Thread.interrupted()){
+			
+		}
+		if(Client.DEBUG){
+			System.out.println("Client to server Thread interrupted, gonna quit");
+		}
 	}
 }

@@ -1,14 +1,15 @@
 package client;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 
 public class TCPConnection {
+	static String host="";
+	static int port=0;
+	static int timeout=0;
 	private Socket clientSocket=null;
 	private TCPSender sender=null;
 	private TCPReceiver receiver=null;
@@ -19,28 +20,39 @@ public class TCPConnection {
 	private LinkedList<String> sender_messages=null;
 	
 	private TCPConnection(String host, int port,int timeout){
-		try {
-		    clientSocket=new Socket(host,port);
-		   // clientSocket.setSoTimeout(timeout);
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			if(Client.DEBUG){
-				e.printStackTrace();
-			}
-			System.err.println("Unknown Host:" + host +":"+port);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			if(Client.DEBUG){
-				e.printStackTrace();
-			}
-			System.err.println("TCP IO Error");
-		}
-		receive_messages = new LinkedList<String>();
-		sender_messages  = new LinkedList<String>();
-		this.initThreads();
+		TCPConnection.host=host;
+		TCPConnection.port=port;
+		TCPConnection.timeout=timeout;
 	}
 	public static TCPConnection setUpConnection(String host, int port,int timeout){
-			return new TCPConnection(host,port,timeout);
+			TCPConnection instance=new TCPConnection(host,port,timeout);
+
+			try {
+				instance.clientSocket=new Socket(host,port);
+				instance.clientSocket.setSoTimeout(timeout);
+			}catch(SocketException e){
+				System.err.println("Set Socket Timeout failed.");
+				System.exit(-1);
+			}
+			catch (UnknownHostException e) {
+				// TODO Auto-generated catch block
+				if(Client.DEBUG){
+					e.printStackTrace();
+				}
+				System.err.println("Unknown Host:" + host +":"+port);
+				System.exit(-1);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				if(Client.DEBUG){
+					e.printStackTrace();
+				}
+				System.err.println("TCP IO Error");
+				System.exit(-1);
+			}
+			instance.receive_messages = new LinkedList<String>();
+			instance.sender_messages  = new LinkedList<String>();
+			instance.initThreads();
+			return instance;
 	}
 	
 	private void initThreads(){
@@ -48,14 +60,14 @@ public class TCPConnection {
 		 senderThread = new Thread(sender);
 		senderThread.start();
 		
-		receiver= new TCPReceiver(receive_messages,clientSocket);
+		receiver= new TCPReceiver(receive_messages,clientSocket,this);
 		 receiverThread = new Thread(receiver);
 		receiverThread.start();
 	}
 	public boolean sendMessage(String message){
 		synchronized(sender_messages){
 			sender_messages.add(message);
-			this.sender_messages.notify();
+			this.sender_messages.notifyAll();
 		}
 		return true;
 	}
@@ -66,15 +78,18 @@ public class TCPConnection {
 		}
 		return ret;
 	}
-	public boolean close(){
+	public boolean terminate(){
 		senderThread.interrupt();
 		receiverThread.interrupt();
 		try {
-			senderThread.join(3000);
-			receiverThread.join(3000);
+			senderThread.join(1000);
+			receiverThread.join(1000);
 		} catch (InterruptedException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			if(Client.DEBUG){
+				e1.printStackTrace();
+			}
+			System.err.println("Sender and Receiver thread didn't cancelled in time");
 		}
 		
 		try {
@@ -83,7 +98,14 @@ public class TCPConnection {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("TCP connection terminated");
+		clientSocket=null;
+		senderThread=null;
+		receiverThread=null;
+		this.receive_messages=null;
+		this.sender_messages=null;
+		if(Client.DEBUG){
+			System.out.println("TCP connection terminated");
+		}
 		return true;
 	}
 

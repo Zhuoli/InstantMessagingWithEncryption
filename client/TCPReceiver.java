@@ -4,12 +4,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.LinkedList;
 
 public class TCPReceiver implements Runnable{
 	LinkedList<String> recvTask=null;
     BufferedReader in=null;
-    TCPReceiver(LinkedList<String> queue, Socket clientSocket){
+    TCPConnection connection=null;
+    TCPReceiver(LinkedList<String> queue, Socket clientSocket, TCPConnection connection){
     	recvTask=queue;
 		try {
 			in = new BufferedReader(new InputStreamReader(
@@ -34,7 +36,13 @@ public class TCPReceiver implements Runnable{
 	     			recvTask.add(str);
 	     		}
      		}
-     	}catch (IOException e) {
+     	}catch(SocketTimeoutException e){
+     		if(Client.DEBUG){
+     			System.err.println("Socket Timeout");
+     		}
+     		connection.terminate();
+     	}
+     	catch (IOException e) {
 				// TODO Auto-generated catch block
      		if(Client.DEBUG){
      			e.printStackTrace();

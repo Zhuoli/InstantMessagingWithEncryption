@@ -1,6 +1,5 @@
 package server;
 
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,7 +16,6 @@ public class Server {
 			super("Exit Handler");
 		}
 		public void run(){
-			//executor.awaitTermination(3000, unit);
 			executor.shutdownNow();
 			System.out.println("Server Control-C interrupted");
 		}
@@ -39,7 +37,7 @@ public class Server {
 				continue;
 			}
 			System.out.println("New user has joined");
-			executor.submit(new Task(tcpSocket, count++));
+			executor.submit(new Task(tcpSocket, count++,10000));
 		 }
 	}
 }
