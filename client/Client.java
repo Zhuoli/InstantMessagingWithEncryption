@@ -1,14 +1,11 @@
 package client;
 
-import java.util.HashMap;
-
 
 public class Client {
 	static boolean DEBUG=false;
-	static Thread c2serverThread=null;
-	static Thread c2clientThread=null;
-	static int clientPort=0;
-	static volatile HashMap<String,String> users = new HashMap<String,String>();
+	static Client2Server c2serverThread=null;
+	static Client2Client c2clientThread=null;
+	protected static int clientPort=0;
 	
 	// terminate App. properly in case of user interrupting
 	static class ExitHandler extends Thread{
@@ -30,8 +27,8 @@ public class Client {
 		// register the terminate Thread
 		//Runtime.getRuntime().addShutdownHook(Client.ExitHandler.getInstance());
 		try{
-			c2serverThread = new Thread(Client2Server.getInstance(authState,user));
-			c2serverThread.start();
+			c2serverThread =Client2Server.getInstance(authState,user);
+			c2clientThread =Client2Client.getInstance();
 			// wait for authentication
 			synchronized(authState){
 				authState.wait(2000);
@@ -39,23 +36,19 @@ public class Client {
 			// if auth. failed
 			if(authState[0]!=1){
 				System.out.println("User name or password not correct, please try again");
-				c2serverThread.interrupt();
-				c2clientThread.interrupt();
+				terminate();
 			}else{
 				System.out.println("Auth succeed");
 				// set up a listen socket port to connection from other clients
-				//c2clientThread = Client2Client.getInstance().setUpListen();
 				// interact console
 				while(true){
-					//String userInput = user.getUserInput();
-					//Client.processUserInput(userInput,Client2Client.getInstance(),Client2Server.getInstance());
+					String userInput = user.getUserInput();
+					Client.processUserInput(userInput);
 				}
 			}
 		}catch(Exception e){
 			System.err.println("Exception occured, client gonna quit");
-			if(c2serverThread!=null){
-				c2serverThread.interrupt();
-			}
+			terminate();
 		}
 
 	}
@@ -63,35 +56,29 @@ public class Client {
 	// parse and process user input
 	// if 'list', then list all the online users
 	// if 'send', then send content to the target user
-	public static void processUserInput(String userInput,Client2Client client2client,Client2Server client2server){
-		if(userInput.toLowerCase().equals("list")){
-			System.out.println(Client.listOnlineUsers());
+	public static void processUserInput(String userInput){
+		userInput=userInput.toLowerCase();
+		if(userInput.equals("list") || userInput.equals("ls")){
+			System.out.println("users: " + UserIPDatabase.getInstance().onlineUsers());
 		}else if(userInput.toLowerCase().startsWith("send")){
 			String[] strs = userInput.split(" ");
 			if(strs.length<3){
 				System.out.println("\nSend Input Error, Usage:\nsend USER MESSAGE\n\n");
+				return;
 			}
 			String content = userInput.substring(strs[0].length()+strs[1].length()+2);
-			client2client.send2client(strs[1],content);
+			c2clientThread.send2client(strs[1],content);
 		}else{
 			System.out.println("\nUser Input Error, Usage:\nlist\nsend USER MESSAGE\n\n");
 		}
 	}
-	public static String listOnlineUsers(){
-		String ret="";
-		synchronized(users){
-			for(String user : users.keySet()){
-				ret=ret+user+'\n';
-			}
-		}
-		return ret;
-	}
+
 	private static synchronized void terminate(){
 		if(Client.DEBUG){
 			System.out.println("Hi, terminate works");
 		}
 		if(c2serverThread!=null){
-			c2serverThread.interrupt();
+			c2serverThread.t.interrupt();
 			try {
 				c2serverThread.wait(2000);
 			} catch (Exception e) {
@@ -102,14 +89,7 @@ public class Client {
 			}
 		}
 		if(c2clientThread!=null){
-			c2clientThread.interrupt();
-			try{
-				c2clientThread.wait(2000);
-			}catch(Exception e){
-				if(Client.DEBUG){
-					e.printStackTrace();
-				}
-			}
+			c2clientThread.terminate();
 		}
 		if(Client.DEBUG){
 			System.out.println("Client now terminated");

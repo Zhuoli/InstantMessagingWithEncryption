@@ -14,6 +14,8 @@ public class Client2Server implements Runnable{
 	static private String hostname= "";
 	static private int port=0;
 	static private int timeout=10000;
+	static private int SocketInterval = 60000;
+	protected Thread t = null;
 	
 	TCPConnection connection =null;
 	Integer[] authState=null;
@@ -52,6 +54,8 @@ public class Client2Server implements Runnable{
 	public static Client2Server getInstance(Integer[] authState,User user){
 		if(instance==null){
 			instance=new Client2Server();
+			instance.t=new Thread(instance);
+			instance.t.start();
 		}
 		instance.user=user;
 		instance.authState=authState;
@@ -67,7 +71,6 @@ public class Client2Server implements Runnable{
 		//start auth...
 		connection.sendMessage("authentication: " + user.getUsername() +":"+user.password);
 		String rec = connection.readMessage();
-		System.out.println("Server: " + rec);
 		if(!rec.toLowerCase().equals("authentication:true")){
 			this.connectionTerminate();
 			if(Client.DEBUG){
@@ -85,15 +88,26 @@ public class Client2Server implements Runnable{
 		}
 		this.connection=null;
 	}
+
 	@Override
 	public void run() {
 		authState[0]=this.authTheUser();
 		synchronized(this.authState){
 			this.authState.notifyAll();
 		}
-		String ret=null;
-		while(!Thread.interrupted() && (ret=connection.readMessage())!=null){
-			System.out.println("Server: " + ret);
+		String message=null;
+		while(!Thread.interrupted() && connection!=null && (message=connection.readMessage())!=null){
+			if(message.startsWith("UserIP:") && message.length()>"UserIP:;".length()){
+				UserIPDatabase.getInstance().insertUsers(message.substring(message.indexOf("UserIP:")+7));
+			}
+			System.out.println("Server: " + message);
+			connection.terminate();
+			try {
+				Thread.sleep(60000);
+			} catch (InterruptedException e) {
+				break;
+			}
+			this.authTheUser();
 		}
 		if(Client.DEBUG){
 			System.out.println("Client to server Thread interrupted, gonna quit");

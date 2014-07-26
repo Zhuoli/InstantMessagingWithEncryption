@@ -51,15 +51,14 @@ public class Task implements Runnable{
 			this.terminate();
 			return;
 		}
-		while((line=clientHandler.readMessage())!=null){
-			
-			System.out.println("Client id: "+ id + ": " + line);
-			clientHandler.sendMessage("Received: "+line);
-			if(Thread.interrupted()){
-				break;
-			}
-		}
+		// send on line users -> ip key
+		this.sendClientUserIP();
 		this.terminate();
+	}
+	private void sendClientUserIP(){
+		String message="UserIP:";
+		message+=UserIPDatabase.getInstance().getOnlineUserIPs();
+		clientHandler.sendMessage(message);
 	}
 	private boolean authUser(String line){
 		String[] strs = line.split(":");

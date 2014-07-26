@@ -33,7 +33,7 @@ public class ClientHandler {
 			if(s==null){
 				System.out.println("Socket unconnected");
 			}
-			return s.toString();
+			return s.toString().split(":")[0].substring(1);
 		}catch(Exception e){
 			e.printStackTrace();
 			return null;

@@ -30,7 +30,7 @@ public class UserIPDatabase {
 		}
 	}
 	public String getIP(String userName){
-		String ret="...";
+		String ret="";
 		synchronized(user_IP){
 			if(user_IP.containsKey(userName)){
 				ret= user_IP.get(userName);
@@ -44,6 +44,17 @@ public class UserIPDatabase {
 				user_IP.remove(userName);
 			}
 		}
+	}
+	public String getOnlineUserIPs(){
+		String message="";
+		String ip="";
+		synchronized(user_IP){
+			for(String user : user_IP.keySet()){
+				ip=user_IP.get(user);
+				message+=user+'/'+ip+';';
+			}
+		}
+		return message;
 	}
 
 }

@@ -10,7 +10,9 @@ import java.net.SocketTimeoutException;
 public class Client2Client implements Runnable{
 	static private Client2Client instance =null;
 	int timeout=1000;
+	protected Thread t = null;
 	TCPConnection connection =null;
+	ServerSocket serverSocket=null;
 	
 	
 	private Client2Client(){
@@ -19,6 +21,8 @@ public class Client2Client implements Runnable{
 	public static Client2Client getInstance(){
 		if(instance==null){
 			instance=new Client2Client();
+			instance.t = new Thread(instance);
+			instance.t.start();
 		}
 		return instance;
 	}
@@ -29,7 +33,17 @@ public class Client2Client implements Runnable{
 		return t;
 	}
 	public boolean send2client(String targetName, String content){
-		
+		System.out.println("send 2 client method");
+		String ip =UserIPDatabase.getInstance().getIP(targetName);
+		System.out.println("IP is "+ip);
+		if(ip==null){
+			System.out.println("Sending ERROR: The use: " + targetName + " is not online currentlly");
+		}
+		TCPConnection connection = TCPConnection.setUpConnection(ip, Client.clientPort, timeout);
+		System.out.println("Calling sendMessage method...");
+		connection.sendMessage(content);
+		System.out.println("Send to user: " + targetName +": "+content);
+		connection.terminate();
 		return true;
 	}
 	public void connectionTerminate(){
@@ -40,39 +54,62 @@ public class Client2Client implements Runnable{
 	}
 	@Override
 	public void run() {
-		System.out.println("Client Listening thread running...");
-		ServerSocket serverSocket=null;
+		if(Client.DEBUG){
+			System.out.println("Client Listening thread running...");
+		}
 		try {
 		 serverSocket=new ServerSocket(Client.clientPort);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return;
+			System.err.println("Client Port: " + Client.clientPort + " already in use.");
+			System.exit(0);
 		}		// register the terminate Thread
 		Socket tcpSocket;
-		while(true){
-			try {
-				tcpSocket = serverSocket.accept();
-				if(tcpSocket==null){
-					continue;
+
+		try {
+			while(!Thread.interrupted()){
+				    System.out.println("Client listern on port: " + Client.clientPort);
+					tcpSocket = serverSocket.accept();
+					System.out.println("Income arrived:");
+					if(tcpSocket==null){
+						continue;
+					}
+					try{
+						tcpSocket.setSoTimeout(timeout);
+						BufferedReader br = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
+						System.out.println("Income: " + br.readLine());
+						br.close();
+						tcpSocket.close();
+					}
+					catch(SocketTimeoutException e){
+						System.out.println("Income Client Socket time out");
+						continue;
+					}
 				}
-				try{
-					tcpSocket.setSoTimeout(timeout);
-					BufferedReader br = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
-					System.out.println("Income: " + br.readLine());
-					br.close();
-					tcpSocket.close();
-				}
-				catch(SocketTimeoutException e){
-					System.out.println("Income Client Socket time out");
-					continue;
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 			
-		 }
+		 } catch (IOException e) {
+		}
+		if(Client.DEBUG){
+			System.out.println("Client2Client Thread interrupted, gonna quit");
+		}
+		try {
+			serverSocket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			if(Client.DEBUG){	
+			e.printStackTrace();
+			}
+		}
 		
+	}
+	public void terminate(){
+		try {
+			if(serverSocket!=null){
+				serverSocket.close();
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

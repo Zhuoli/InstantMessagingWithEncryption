@@ -9,25 +9,25 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 public class TCPConnection {
-	static String host="";
-	private int port=0;
 	private int timeout=0;
 	private Socket clientSocket=null;
 	private BufferedReader in = null;
     private DataOutputStream out = null;
 
 	
-	private TCPConnection(String host, int port,int timeout){
-		this.host=host;
-		this.port=port;
+	private TCPConnection(int timeout){
 		this.timeout=timeout;
 	}
 	public static TCPConnection setUpConnection(String host, int port,int timeout){
-			TCPConnection instance=new TCPConnection(host,port,timeout);
+			System.out.println("Setting up connection...");
+			TCPConnection instance=new TCPConnection(timeout);
 
 			try {
+				System.out.println("Setting up connection...new socket: " +host+"/"+port);
 				instance.clientSocket=new Socket(host,port);
+				System.out.println("Setting up connection...setSoTimeout");
 				instance.clientSocket.setSoTimeout(timeout);
+				System.out.println("Setting up connection...");
 			}catch(SocketException e){
 				System.err.println("Set Socket Timeout failed or Server connection refused.");
 				//e.printStackTrace();
@@ -51,10 +51,13 @@ public class TCPConnection {
 		      try {
 		    	  instance.in =new BufferedReader(new InputStreamReader(instance.clientSocket.getInputStream()));
 		    	  instance.out = new DataOutputStream(instance.clientSocket.getOutputStream());
-			  } catch (IOException e) {
+
+		  		 System.out.println("Setting up connection...");
+		  		} catch (IOException e) {
 					// TODO Auto-generated catch block
 				 e.printStackTrace();
 	  		  }
+		      System.out.println("Setted up connection");
 			return instance;
 	}
 	
@@ -89,7 +92,9 @@ public class TCPConnection {
 			this.clientSocket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			if(Client.DEBUG){
+				e.printStackTrace();
+			}
 		}
 		clientSocket=null;
 		if(Client.DEBUG){
