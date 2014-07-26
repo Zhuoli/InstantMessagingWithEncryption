@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 
 public class ClientHandler {
@@ -14,6 +15,7 @@ public class ClientHandler {
     private Task taskThread=null;
 	public ClientHandler(Socket clientSocket, Task taskThread){
 		this.taskThread=taskThread;
+		this.clientSocket=clientSocket;
 	      try {
 	    	  in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			  out = new DataOutputStream(clientSocket.getOutputStream());
@@ -22,14 +24,28 @@ public class ClientHandler {
 			 e.printStackTrace();
   		  }
 	}
-	
+	public String getClientIPAddress(){
+		try{
+			if(clientSocket==null){
+				System.out.println("clientSocket is null");
+			}
+			SocketAddress s= clientSocket.getRemoteSocketAddress();
+			if(s==null){
+				System.out.println("Socket unconnected");
+			}
+			return s.toString();
+		}catch(Exception e){
+			e.printStackTrace();
+			return null;
+		}
+	}
 	public String readMessage(){
 		String ret=null;
 		try {
 			ret=in.readLine();
 		} catch(SocketTimeoutException e){
 			System.err.println("Socket Readline Timeout");
-			this.taskThread.terminate(-1);
+			this.taskThread.terminate();
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

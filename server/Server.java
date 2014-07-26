@@ -7,9 +7,10 @@ import java.util.concurrent.Executors;
 
 public class Server {
 	static final int SERVER_MAX_NUM=10;
-	static final boolean DEBUG = true;
+	static final boolean DEBUG = false;
 	static int count=0;
 	static ExecutorService executor=null;
+	static AdminInteractive admin = null;
 	// terminate App. properly in case of user interrupting
 	static class ExitHandler extends Thread{
 		private ExitHandler(){
@@ -31,6 +32,7 @@ public class Server {
 
 		// register the terminate Thread
 		Runtime.getRuntime().addShutdownHook(Server.ExitHandler.getInstance());
+		admin = AdminInteractive.getInstance();
 		while(true){
 			Socket tcpSocket=tcpServer.accept();
 			if(tcpSocket==null){

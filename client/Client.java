@@ -32,10 +32,16 @@ public class Client {
 		try{
 			c2serverThread = new Thread(Client2Server.getInstance(authState,user));
 			c2serverThread.start();
+			// wait for authentication
 			synchronized(authState){
 				authState.wait(2000);
 			}
-			if(authState[0]==1){
+			// if auth. failed
+			if(authState[0]!=1){
+				System.out.println("User name or password not correct, please try again");
+				c2serverThread.interrupt();
+				c2clientThread.interrupt();
+			}else{
 				System.out.println("Auth succeed");
 				// set up a listen socket port to connection from other clients
 				//c2clientThread = Client2Client.getInstance().setUpListen();
@@ -44,9 +50,6 @@ public class Client {
 					//String userInput = user.getUserInput();
 					//Client.processUserInput(userInput,Client2Client.getInstance(),Client2Server.getInstance());
 				}
-			}else{
-				System.out.println("User name or password not correct, please try again");
-				c2serverThread.interrupt();
 			}
 		}catch(Exception e){
 			System.err.println("Exception occured, client gonna quit");

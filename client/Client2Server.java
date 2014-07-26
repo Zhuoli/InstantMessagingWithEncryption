@@ -5,9 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Date;
-
-import javax.xml.crypto.Data;
 
 
 
@@ -16,7 +13,7 @@ public class Client2Server implements Runnable{
 	static private Client2Server instance = null;
 	static private String hostname= "";
 	static private int port=0;
-	static private int timeout=2000;
+	static private int timeout=10000;
 	
 	TCPConnection connection =null;
 	Integer[] authState=null;

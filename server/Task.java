@@ -9,6 +9,7 @@ public class Task implements Runnable{
 
     private ClientHandler clientHandler = null;
 	private int id = 0;
+	private String ip=null;
 	public Task(Socket socket, int id,int timeout){
 		this.id = id;
 		try {
@@ -29,55 +30,56 @@ public class Task implements Runnable{
 		
 		// TODO Auto-generated method stub
 		System.out.println("Welcome new users, ID: " + id +'\n');
-
+		ip=clientHandler.getClientIPAddress();
 		String line=null;
-//		while((line = clientHandler.readMessage())!=null )
-//		{ 
-//			System.out.println("Client id: " + id + ":  "  + line);
-//			line=line.toLowerCase();
-//			if(line.startsWith("authentication")){
-//				if(this.authUser(line)){
-//					System.out.println("authentication:true");
-//					clientHandler.writeMessage("authentication:true");
-//				}else{
-//
-//					System.out.println("authentication:false");
-//					clientHandler.writeMessage("authentication:false");
-//				}
-//			}else{
-//				clientHandler.writeMessage("Message received: " + line+ '\n');
-//			}
-//			if(Thread.interrupted()){
-//				break;
-//			}
-//		}
+		line = clientHandler.readMessage();
+		System.out.println("Client id: " + id + ":  "  + line);
+		line=line.toLowerCase();
+		if(line.startsWith("authentication")){
+			if(this.authUser(line)){
+				System.out.println("authentication:true");
+				clientHandler.sendMessage("authentication:true");
+			}else{
+				System.out.println("authentication:false");
+				clientHandler.sendMessage("authentication:false");
+				this.terminate();
+				return;
+			}
+		}else{
+			System.out.println("Client didn't start with authentication, gonna drop connection");
+			clientHandler.sendMessage("Please authenticate yourself");
+			this.terminate();
+			return;
+		}
 		while((line=clientHandler.readMessage())!=null){
 			
 			System.out.println("Client id: "+ id + ": " + line);
-			System.out.println("Sender: authentication:true" );
-			clientHandler.sendMessage("authentication:true");
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			clientHandler.sendMessage("Received: "+line);
+			if(Thread.interrupted()){
+				break;
 			}
-			clientHandler.sendMessage("authentication:true");
 		}
-		this.terminate(0);
+		this.terminate();
 	}
 	private boolean authUser(String line){
 		String[] strs = line.split(":");
 		if(strs.length<3){
+			System.out.println("Input format error");
 			return false;
 		}else{
-			return Database.getInstance().authUser(strs[1], strs[2]);
+			if(UsersInfoDatabase.getInstance().authUser(strs[1].trim(), strs[2].trim())){
+				// update user -> ip hash map
+				UserIPDatabase.getInstance().update(strs[1].trim(), ip);
+				return true;
+			}else{
+				return false;
+			}
+			
 		}
 	}
-	protected void terminate(int quitNum){
+	protected void terminate(){
 		System.out.println("Client id: " + id + " quit the chart");
 		clientHandler.terminate();
-		System.exit(quitNum);
 	}
 
 }

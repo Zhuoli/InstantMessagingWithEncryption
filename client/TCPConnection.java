@@ -27,7 +27,7 @@ public class TCPConnection {
 
 			try {
 				instance.clientSocket=new Socket(host,port);
-			//	instance.clientSocket.setSoTimeout(timeout);
+				instance.clientSocket.setSoTimeout(timeout);
 			}catch(SocketException e){
 				System.err.println("Set Socket Timeout failed or Server connection refused.");
 				//e.printStackTrace();
