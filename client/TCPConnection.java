@@ -19,15 +19,11 @@ public class TCPConnection {
 		this.timeout=timeout;
 	}
 	public static TCPConnection setUpConnection(String host, int port,int timeout){
-			System.out.println("Setting up connection...");
 			TCPConnection instance=new TCPConnection(timeout);
 
 			try {
-				System.out.println("Setting up connection...new socket: " +host+"/"+port);
 				instance.clientSocket=new Socket(host,port);
-				System.out.println("Setting up connection...setSoTimeout");
 				instance.clientSocket.setSoTimeout(timeout);
-				System.out.println("Setting up connection...");
 			}catch(SocketException e){
 				System.err.println("Set Socket Timeout failed or Server connection refused.");
 				//e.printStackTrace();
@@ -52,12 +48,10 @@ public class TCPConnection {
 		    	  instance.in =new BufferedReader(new InputStreamReader(instance.clientSocket.getInputStream()));
 		    	  instance.out = new DataOutputStream(instance.clientSocket.getOutputStream());
 
-		  		 System.out.println("Setting up connection...");
 		  		} catch (IOException e) {
 					// TODO Auto-generated catch block
 				 e.printStackTrace();
 	  		  }
-		      System.out.println("Setted up connection");
 			return instance;
 	}
 	

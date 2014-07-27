@@ -28,7 +28,7 @@ public class Client {
 		//Runtime.getRuntime().addShutdownHook(Client.ExitHandler.getInstance());
 		try{
 			c2serverThread =Client2Server.getInstance(authState,user);
-			c2clientThread =Client2Client.getInstance();
+			c2clientThread =Client2Client.getInstance(user);
 			// wait for authentication
 			synchronized(authState){
 				authState.wait(2000);

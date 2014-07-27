@@ -24,7 +24,6 @@ public class UserIPDatabase {
 	}
 	
 	public String getIP(String name){
-		System.out.println("enter getIpMethod");
 		String ip=user_IP.get(name);
 		return ip;
 	}

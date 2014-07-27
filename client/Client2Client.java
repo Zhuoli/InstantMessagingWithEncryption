@@ -9,18 +9,19 @@ import java.net.SocketTimeoutException;
 
 public class Client2Client implements Runnable{
 	static private Client2Client instance =null;
+	User user = null;
 	int timeout=1000;
 	protected Thread t = null;
 	TCPConnection connection =null;
 	ServerSocket serverSocket=null;
 	
 	
-	private Client2Client(){
-		
+	private Client2Client(User user){
+		this.user=user;
 	}
-	public static Client2Client getInstance(){
+	public static Client2Client getInstance(User user){
 		if(instance==null){
-			instance=new Client2Client();
+			instance=new Client2Client(user);
 			instance.t = new Thread(instance);
 			instance.t.start();
 		}
@@ -33,16 +34,13 @@ public class Client2Client implements Runnable{
 		return t;
 	}
 	public boolean send2client(String targetName, String content){
-		System.out.println("send 2 client method");
 		String ip =UserIPDatabase.getInstance().getIP(targetName);
-		System.out.println("IP is "+ip);
 		if(ip==null){
 			System.out.println("Sending ERROR: The use: " + targetName + " is not online currentlly");
 		}
 		TCPConnection connection = TCPConnection.setUpConnection(ip, Client.clientPort, timeout);
-		System.out.println("Calling sendMessage method...");
-		connection.sendMessage(content);
-		System.out.println("Send to user: " + targetName +": "+content);
+		connection.sendMessage(content+'/'+user.getUsername());
+		System.out.println("Send to user: " + targetName +": "+content+"/"+user.getUsername());
 		connection.terminate();
 		return true;
 	}
@@ -68,9 +66,7 @@ public class Client2Client implements Runnable{
 
 		try {
 			while(!Thread.interrupted()){
-				    System.out.println("Client listern on port: " + Client.clientPort);
 					tcpSocket = serverSocket.accept();
-					System.out.println("Income arrived:");
 					if(tcpSocket==null){
 						continue;
 					}

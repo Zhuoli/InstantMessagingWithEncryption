@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
  * @author zhuoli
  * -- ls: list the users
  * -- password username password:  change user's password or create a new user with this password
+ * -- del username: delete this user
  * -- ip username: show the ip address of this user
  * */
 public class AdminInteractive implements Runnable{
@@ -55,10 +56,18 @@ public class AdminInteractive implements Runnable{
 			this.changePassword(input);
 		}else if(input.startsWith("ip")){
 			this.showIP(input);
+		}else if(input.startsWith("del ")){
+			this.delUser(input);
 		}else{
 			return;
 		}
 		
+	}
+	
+	private void delUser(String input){
+		String[] strs = input.split(" ");
+		String username = strs[1];
+		UserIPDatabase.getInstance().deleteUser(username);
 	}
 	private void showIP(String input){
 		String[] strs = input.split(" ");
@@ -72,6 +81,10 @@ public class AdminInteractive implements Runnable{
 	private void changePassword(String input){
 		String[] strs=input.split(" ");
 		if(strs.length==3){
+			if(strs[2].length()<8){
+				System.out.println("New passowrd should not less than 8 letters, please try again");
+				return;
+			}
 			UsersInfoDatabase.getInstance().changePassword(strs[1].trim(), strs[2].trim());
 			System.out.println("New User has been added: "+strs[1].trim());
 		}
