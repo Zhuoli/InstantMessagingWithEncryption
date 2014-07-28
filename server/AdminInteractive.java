@@ -67,7 +67,7 @@ public class AdminInteractive implements Runnable{
 	private void delUser(String input){
 		String[] strs = input.split(" ");
 		String username = strs[1];
-		UserIPDatabase.getInstance().deleteUser(username);
+		UsersInfoDatabase.getInstance().delUser(username);
 	}
 	private void showIP(String input){
 		String[] strs = input.split(" ");

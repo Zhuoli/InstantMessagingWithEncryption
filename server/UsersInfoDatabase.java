@@ -5,14 +5,13 @@ import java.util.HashMap;
 public class UsersInfoDatabase {
 	static UsersInfoDatabase instance=null;
 	static String dataName="server/users.dat";
+	
+	EncryptDatabase cipher = null;
 	public  HashMap<String,String> users=null;
 	
 	private UsersInfoDatabase(){
+		cipher = new EncryptDatabase();
 		users = readFromFile();
-//		users.put("tony", "12345678");
-//		users.put("marry", "12345678");
-//		users.put("meili", "12345678");
-//		users.put("roze", "12345678");
 	}
 	
 	private String getUserPasswds(){
@@ -36,7 +35,7 @@ public class UsersInfoDatabase {
 	}
 	protected void encrypt2file(String targetFile){
 		String plain_text = this.getUserPasswds();
-		EncryptDatabase.getInstance().encrypt2file(plain_text, targetFile);
+		cipher.encrypt2file(plain_text, targetFile,Server.public_key_filename,Server.private_key_filename);
 	}
 	
 	public static UsersInfoDatabase getInstance(){
@@ -73,6 +72,15 @@ public class UsersInfoDatabase {
 			users.put(name, password);
 		}
 		encrypt2file(UsersInfoDatabase.dataName);
+	}
+	// delete user
+	protected void delUser(String name){
+		synchronized(name){
+			if(users.containsKey(name)){
+				users.remove(name);
+				encrypt2file(UsersInfoDatabase.dataName);
+			}
+		}
 	}
 	// check if this user exists
 	protected boolean hasUser(String name){

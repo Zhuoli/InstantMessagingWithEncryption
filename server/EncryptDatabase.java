@@ -9,36 +9,58 @@ import java.io.*;
 
 public class EncryptDatabase {
     // byte representation of parameters and IV
-    static EncryptDatabase instance = null;
     byte[] iv, cipherText, publicKey, plainText, privateKey, signature, aesKeyEncyrpted;
 
 	public EncryptDatabase( ){
 	}
 	
-	protected static EncryptDatabase getInstance(){
-		if(instance==null){
-			instance=new EncryptDatabase();
-		}
-		return instance;
-	}
-   protected void encrypt2file(String plaintext, String output_file){
+   protected void encrypt2file(String plaintext, String output_file,String public_key_filename,String private_key_filename){
 
-		Key aesKey;
-		try{
-	        /*********** Symmetric Encryption *************/	
-			// Symmetric (AES) key generation
-			KeyGenerator aesKeyGen = KeyGenerator.getInstance("AES");
-			aesKey = aesKeyGen.generateKey();
-			cipherText=aesEncrypt(plaintext,aesKey);
-			/*************  RSA Encryption *****************/
-			rsaEncrypt(Server.public_key_filename,Server.private_key_filename,aesKey);
-			// write crypted data 2 file
-			write2file(output_file);
-		}catch(Exception e){
-			System.out.println(e.getMessage());
+		// init RSA keys
+		try {
+			privateKey = readByteFromFile(new File(private_key_filename));
+			publicKey = readByteFromFile(new File(public_key_filename));
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 			System.exit(0);
 		}
+		getEncryptedMessage(publicKey,privateKey,plaintext);
+			// write crypted data 2 file
+			try {
+				write2file(output_file);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
    }
+   
+   protected byte[] getEncryptedMessage(byte[] publicKey, byte[] privateKey,String plain_text){
+	   byte[] cipher=null;
+	   this.privateKey=privateKey;
+	   this.publicKey=publicKey;
+	   Key aesKey;
+		try {
+	        /*********** Symmetric Encryption *************/	
+			// Symmetric (AES) key generation
+			KeyGenerator aesKeyGen;
+				aesKeyGen = KeyGenerator.getInstance("AES");
+			aesKey = aesKeyGen.generateKey();
+			cipherText=aesEncrypt(plain_text,aesKey);
+			/*************  RSA Encryption *****************/
+			rsaEncrypt(aesKey);
+	   
+
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	   return cipher;
+   }
+   
   		private void write2file(String output_file)throws Exception{
   			/** write to file **/
             writeByteToFile(new File(output_file),signature);
@@ -66,7 +88,7 @@ public class EncryptDatabase {
                 
            }
   		}
-  		private void rsaEncrypt(String public_key_filename, String private_key_filename, Key aesKey) throws Exception{
+  		private void rsaEncrypt( Key aesKey) throws Exception{
   			Cipher publicChiper = Cipher.getInstance("RSA");
 			Signature sig = Signature.getInstance("SHA512withRSA");
 			KeyFactory rsaKeyFactory = KeyFactory.getInstance("RSA");
@@ -75,9 +97,6 @@ public class EncryptDatabase {
 			PrivateKey prvKey;
 			PublicKey pubKey;
 
-			// init RSA keys
-			privateKey = readByteFromFile(new File(private_key_filename));
-			publicKey = readByteFromFile(new File(public_key_filename));
 			privateSpec = new PKCS8EncodedKeySpec(privateKey);
 			publicSpec = new X509EncodedKeySpec(publicKey);
 			prvKey = rsaKeyFactory.generatePrivate(privateSpec);
