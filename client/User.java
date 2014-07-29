@@ -12,11 +12,11 @@ public class User {
 	public String password=null;
 	////
 	private String name="";
-	private String hashKey="";
+	private byte[] hashKey=null;
 	private BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 	// user instance
 	private static User user=null;
-	private User(String name, String hashcode){
+	private User(String name, byte[] hashcode){
 		this.name=name;
 		this.hashKey=hashcode;
 	}
@@ -30,7 +30,7 @@ public class User {
 				name = in.readLine();
 				System.out.println("Please input user password");
 				String password=in.readLine();
-				String hashcode = hashIt(password);
+				byte[] hashcode = hashIt(password);
 				// initiate user information
 				User.user=new User(name,hashcode);
 				// to be deleted
@@ -51,7 +51,7 @@ public class User {
 	// Hash a string using SHA256, 
 	// Given: PlanText
 	// Return: HashedString
-	public static String hashIt(String key){
+	public static byte[]  hashIt(String key){
 		MessageDigest messageDigest = null;
 		try {
 			messageDigest = MessageDigest.getInstance("SHA-256");
@@ -61,10 +61,13 @@ public class User {
 			System.exit(-1);
 		}
 		messageDigest.update(key.getBytes());
-		String encryptedString = new String(messageDigest.digest());
-		return encryptedString;
+		System.out.println("digest length:"+messageDigest.getDigestLength());
+		byte[] digests= messageDigest.digest();
+		System.out.println("digest length:"+messageDigest.getDigestLength());
+		return digests;
+		
 	}
-	public String getHashedKey(){
+	public byte[] getHashedKey(){
 		return user.hashKey;
 	}
 	public String getUsername(){

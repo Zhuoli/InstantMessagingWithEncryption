@@ -3,6 +3,7 @@ package server;
 
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Arrays;
 
 public class Task implements Runnable{
 
@@ -31,12 +32,13 @@ public class Task implements Runnable{
 		// TODO Auto-generated method stub
 		System.out.println("Welcome new users, ID: " + id +'\n');
 		ip=clientHandler.getClientIPAddress();
-		String line=null;
-		line = clientHandler.readMessage();
-		System.out.println("Client id: " + id + ":  "  + line);
-		line=line.toLowerCase();
-		if(line.startsWith("authentication")){
-			if(this.authUser(line)){
+		byte[] line=null;
+		line = clientHandler.readBytes();
+		String head =new String(Arrays.copyOfRange(line, 0, line.length-32));
+		byte[] hashcode =Arrays.copyOf(line, line.length-32);
+		System.out.println("Client id: " + id + ":  "  +head );
+		if(head.startsWith("authentication")){
+			if(this.authUser(head,hashcode)){
 				System.out.println("authentication:true");
 				clientHandler.sendMessage("authentication:true");
 			}else{
@@ -60,13 +62,13 @@ public class Task implements Runnable{
 		message+=UserIPDatabase.getInstance().getOnlineUserIPs();
 		clientHandler.sendMessage(message);
 	}
-	private boolean authUser(String line){
+	private boolean authUser(String line,byte[] hashcode){
 		String[] strs = line.split(":");
-		if(strs.length<5){
-			System.out.println("Input format error");
+		if(strs.length<4){
+			System.out.println("Input format error: " + line);
 			return false;
 		}else{
-			if(UsersInfoDatabase.getInstance().authUser(strs[3].trim(), strs[4].trim())){
+			if(UsersInfoDatabase.getInstance().authUser(strs[3].trim(), hashcode)){
 				// update user -> ip hash map
 				UserIPDatabase.getInstance().update(strs[3].trim(), ip,strs[2].trim());
 				return true;

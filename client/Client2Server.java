@@ -1,10 +1,12 @@
 package client;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 
 
@@ -62,7 +64,22 @@ public class Client2Server{
 		}
 		connection = TCPConnection.setUpConnection(hostname, port,timeout);
 		//start auth...
-		connection.sendMessage("authentication: Client listenn on port:"+Client.clientPort+':' + user.getUsername() +":"+user.password);
+		byte[] message=null;
+		try {
+			message = ("authentication: Client listenn on port:"+Client.clientPort+':' + user.getUsername() +":").getBytes("US-ASCII");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+		try {
+			outputStream.write(message);
+			outputStream.write(user.getHashedKey());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		connection.sendBytes(outputStream.toByteArray());
 		String rec = connection.readMessage();
 		if(!rec.toLowerCase().equals("authentication:true")){
 			this.connectionTerminate();

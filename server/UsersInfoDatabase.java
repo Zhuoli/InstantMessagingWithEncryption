@@ -1,5 +1,7 @@
 package server;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 
 public class UsersInfoDatabase {
@@ -57,6 +59,39 @@ public class UsersInfoDatabase {
 		}
 		System.out.println("user name: " + name + " not exists");
 		return false;
+	}
+	public boolean authUser(String name, byte[] hashcode){
+		System.out.println("Users in database");
+		synchronized(users){
+			for(String usr : users.keySet()){
+				System.out.print(usr+'\t');
+			}
+			if(users.containsKey(name)){
+				return hashIt(users.get(name)).equals(hashcode);
+			}
+		}
+		System.out.println("user name: " + name + " not exists");
+		return false;
+		
+	}
+	// Hash a string using SHA256, 
+	// Given: PlanText
+	// Return: hashed 32 len byte
+	public static byte[]  hashIt(String key){
+		MessageDigest messageDigest = null;
+		try {
+			messageDigest = MessageDigest.getInstance("SHA-256");
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		messageDigest.update(key.getBytes());
+		//System.out.println("digest length:"+messageDigest.getDigestLength());
+		byte[] digests= messageDigest.digest();
+		//System.out.println("digest length:"+messageDigest.getDigestLength());
+		return digests;
+		
 	}
 	// change user's password
 	protected void changePassword(String name, String password){
