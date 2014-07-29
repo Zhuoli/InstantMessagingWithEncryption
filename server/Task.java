@@ -46,7 +46,7 @@ public class Task implements Runnable{
 				return;
 			}
 		}else{
-			System.out.println("Client didn't start with authentication, gonna drop connection");
+			System.out.println("Client didn't start with authentication, gonna drop connection. "+line);
 			clientHandler.sendMessage("Please authenticate yourself");
 			this.terminate();
 			return;

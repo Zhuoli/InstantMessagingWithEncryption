@@ -5,6 +5,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -14,7 +15,6 @@ public class TCPConnection {
 	private Socket clientSocket=null;
 	private BufferedReader in = null;
     private DataOutputStream out = null;
-    DataInputStream din =null;
 	
 	private TCPConnection(int timeout){
 		this.timeout=timeout;
@@ -48,7 +48,6 @@ public class TCPConnection {
 		      try {
 		    	  instance.in =new BufferedReader(new InputStreamReader(instance.clientSocket.getInputStream()));
 		    	  instance.out = new DataOutputStream(instance.clientSocket.getOutputStream());
-		    	  instance.din= new DataInputStream(instance.clientSocket.getInputStream());
 
 		  		} catch (IOException e) {
 					// TODO Auto-generated catch block
@@ -56,21 +55,39 @@ public class TCPConnection {
 	  		  }
 			return instance;
 	}
+	public static TCPConnection setUpConnection(Socket clientSocket, int timeout){
+		TCPConnection instance = new TCPConnection(timeout);
+		instance.clientSocket=clientSocket;
+	      try {
+	    	  instance.in =new BufferedReader(new InputStreamReader(instance.clientSocket.getInputStream()));
+	    	  instance.out = new DataOutputStream(instance.clientSocket.getOutputStream());
+
+	  		} catch (IOException e) {
+				// TODO Auto-generated catch block
+			 e.printStackTrace();
+  		  }
+	      return instance;
+	}
 	
 	public boolean sendMessage(String message){
+//		try {
+//			this.out.writeBytes(message+'\n');
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//			return false;
+//		}
+//		return true;
 		try {
-			this.out.writeBytes(message+'\n');
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return sendBytes(message.getBytes("US-ASCII"));
+		} catch (UnsupportedEncodingException e) {
 			return false;
 		}
-		return true;
 	}
 	public boolean sendBytes(byte[] message){
 		
 		try {
-			this.out.write(message.length);
+			this.out.writeBytes(""+message.length+'\n');
 			this.out.write(message);
 		} catch (IOException e) {
 			System.err.println("Send failed");
@@ -80,29 +97,32 @@ public class TCPConnection {
 		return true;
 	}
 	public String readMessage(){
-		//Date date = new Date();
-		//System.out.println("read time: " + date.toString());
-		try {
-			return in.readLine();
-		}catch(SocketTimeoutException e){
-			System.err.println("Socket timeout. timeout=="+timeout);
-			return null;
-			
-		}catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
+//		//Date date = new Date();
+//		//System.out.println("read time: " + date.toString());
+//		try {
+//			return in.readLine();
+//		}catch(SocketTimeoutException e){
+//			System.err.println("Socket timeout. timeout=="+timeout);
+//			return null;
+//			
+//		}catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//			return null;
+//		}
+		return new String(readBytes());
 	}
 	public byte[] readBytes(){
 		byte[] message=null;
 		int len;
 		try {
-			len = din.read();
+			len = Integer.parseInt(in.readLine());
 			if(len>0){
 				message=new byte[len];
+				for(int i=0;i<len;i++){
+					message[i]=(byte) in.read();
+				}
 			}else{
-				din.read(message);
 			}
 		} catch (IOException e) {
 			System.err.println("read error");

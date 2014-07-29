@@ -1,6 +1,7 @@
 package server;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,6 +12,7 @@ import java.net.SocketTimeoutException;
 public class ClientHandler {
 	private BufferedReader in = null;
     private DataOutputStream out = null;
+    
     Socket clientSocket=null;
     private Task taskThread=null;
 	public ClientHandler(Socket clientSocket, Task taskThread){
@@ -40,28 +42,63 @@ public class ClientHandler {
 		}
 	}
 	public String readMessage(){
-		String ret=null;
+//		String ret=null;
+//		try {
+//			ret=in.readLine();
+//		} catch(SocketTimeoutException e){
+//			System.err.println("Socket Readline Timeout");
+//			this.taskThread.terminate();
+//			
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		if(ret==null){
+//			System.out.println("Read socket got null");
+//		}
+//		return  ret;
+		return new String(readBytes());
+	}
+	public byte[] readBytes(){
+		byte[] message=null;
+		int len;
 		try {
-			ret=in.readLine();
-		} catch(SocketTimeoutException e){
-			System.err.println("Socket Readline Timeout");
-			this.taskThread.terminate();
-			
+			len = Integer.parseInt(in.readLine());
+			System.out.println("Gonna read length: "+len);
+			if(len>0){
+				message=new byte[len];
+				for(int i=0;i<len;i++){
+					message[i]=(byte) in.read();
+				}
+			}else{
+				System.err.println("read error");
+				System.exit(0);
+			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println("read error");
+			return message;
 		}
-		if(ret==null){
-			System.out.println("Read socket got null");
-		}
-		return  ret;
+		return message;
 	}
 	public boolean sendMessage(String message){
+//		try {
+//			out.writeBytes(message+'\n');
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//			return false;
+//		}
+//		return true;
+		return sendBytes(message.getBytes());
+	}
+	public boolean sendBytes(byte[] message){
+		
 		try {
-			out.writeBytes(message+'\n');
+			out.writeBytes(""+message.length+'\n');
+			this.out.write(message);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println("Send failed");
+			System.exit(0);
 			return false;
 		}
 		return true;

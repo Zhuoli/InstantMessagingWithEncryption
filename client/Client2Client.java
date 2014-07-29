@@ -78,17 +78,10 @@ public class Client2Client implements Runnable{
 					if(tcpSocket==null){
 						continue;
 					}
-					try{
-						tcpSocket.setSoTimeout(timeout);
-						BufferedReader br = new BufferedReader(new InputStreamReader(tcpSocket.getInputStream()));
-						System.out.println("Income: " + br.readLine());
-						br.close();
-						tcpSocket.close();
-					}
-					catch(SocketTimeoutException e){
-						System.out.println("Income Client Socket time out");
-						continue;
-					}
+					TCPConnection connection = TCPConnection.setUpConnection(tcpSocket, 2000);
+					String message = connection.readMessage();
+					System.out.println("New message: " + message);
+					connection.terminate();
 				}
 			
 		 } catch (IOException e) {
