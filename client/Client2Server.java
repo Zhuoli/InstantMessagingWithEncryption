@@ -8,17 +8,14 @@ import java.io.IOException;
 
 
 
-public class Client2Server implements Runnable{
+public class Client2Server{
 	
 	static private Client2Server instance = null;
 	static private String hostname= "";
 	static private int port=0;
 	static private int timeout=10000;
-	static private int SocketInterval = 60000;
-	protected Thread t = null;
 	
 	TCPConnection connection =null;
-	Integer[] authState=null;
 	private User user=null;
 	
 	private Client2Server(){
@@ -50,21 +47,18 @@ public class Client2Server implements Runnable{
 			System.err.println("Client configure file 'setting.conf' format not correct:\nhostname: IP\nport: number");
 		}
 	}
-	public static Client2Server getInstance(Integer[] authState,User user){
+	public static Client2Server getInstance(User user){
 		if(instance==null){
 			instance=new Client2Server();
-			instance.t=new Thread(instance);
-			instance.t.start();
 		}
 		instance.user=user;
-		instance.authState=authState;
 		return instance;
 	}
 	// authenticate	 the user
-	public  int authTheUser(){
+	public  boolean authTheUser(){
 		if(user==null){
 			System.out.println("User is null");
-			return -1;
+			return false;
 		}
 		connection = TCPConnection.setUpConnection(hostname, port,timeout);
 		//start auth...
@@ -75,11 +69,11 @@ public class Client2Server implements Runnable{
 			if(Client.DEBUG){
 				System.out.println("Auth Failed: Server Can't be authered   "+rec);
 			}
-			return 0;
+			return false;
 		}
 		// ...auth done
 		//	this.connectionTerminate();
-		return 1;
+		return true;
 	}
 	public void connectionTerminate(){
 		if(this.connection!=null){
@@ -88,29 +82,17 @@ public class Client2Server implements Runnable{
 		this.connection=null;
 	}
 
-	@Override
-	public void run() {
-		authState[0]=this.authTheUser();
-		synchronized(this.authState){
-			this.authState.notifyAll();
+
+	protected boolean requestUpdateUsersInfo(){
+		this.authTheUser();
+		String message=connection.readMessage();
+		if(message!=null && message.startsWith("UserIP:") && message.length()>"UserIP:;".length()){
+			UserIPDatabase.getInstance().insertUsers(message.substring(message.indexOf("UserIP:")+7));
+		}else{
+			return false;
 		}
-		String message=null;
-		while(!Thread.interrupted() && connection!=null && (message=connection.readMessage())!=null){
-			if(message.startsWith("UserIP:") && message.length()>"UserIP:;".length()){
-				UserIPDatabase.getInstance().insertUsers(message.substring(message.indexOf("UserIP:")+7));
-			}
-			System.out.println("Server: " + message);
-			connection.terminate();
-			try {
-				Thread.sleep(60000);
-			} catch (InterruptedException e) {
-				break;
-			}
-			this.authTheUser();
-		}
-		if(Client.DEBUG){
-			System.out.println("Client to server Thread interrupted, gonna quit");
-		}
-		this.connectionTerminate();
+		System.out.println("Server: " + message);
+		connection.terminate();
+		return true;
 	}
 }

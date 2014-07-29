@@ -1,6 +1,7 @@
 package client;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,7 +14,7 @@ public class TCPConnection {
 	private Socket clientSocket=null;
 	private BufferedReader in = null;
     private DataOutputStream out = null;
-
+    DataInputStream din =null;
 	
 	private TCPConnection(int timeout){
 		this.timeout=timeout;
@@ -47,6 +48,7 @@ public class TCPConnection {
 		      try {
 		    	  instance.in =new BufferedReader(new InputStreamReader(instance.clientSocket.getInputStream()));
 		    	  instance.out = new DataOutputStream(instance.clientSocket.getOutputStream());
+		    	  instance.din= new DataInputStream(instance.clientSocket.getInputStream());
 
 		  		} catch (IOException e) {
 					// TODO Auto-generated catch block
@@ -65,6 +67,18 @@ public class TCPConnection {
 		}
 		return true;
 	}
+	public boolean sendBytes(byte[] message){
+		
+		try {
+			this.out.write(message.length);
+			this.out.write(message);
+		} catch (IOException e) {
+			System.err.println("Send failed");
+			System.exit(0);
+			return false;
+		}
+		return true;
+	}
 	public String readMessage(){
 		//Date date = new Date();
 		//System.out.println("read time: " + date.toString());
@@ -79,6 +93,22 @@ public class TCPConnection {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	public byte[] readBytes(){
+		byte[] message=null;
+		int len;
+		try {
+			len = din.read();
+			if(len>0){
+				message=new byte[len];
+			}else{
+				din.read(message);
+			}
+		} catch (IOException e) {
+			System.err.println("read error");
+			System.exit(0);
+		}
+		return message;
 	}
 	public boolean terminate(){
 

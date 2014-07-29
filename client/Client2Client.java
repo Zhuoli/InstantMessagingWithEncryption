@@ -34,11 +34,15 @@ public class Client2Client implements Runnable{
 		return t;
 	}
 	public boolean send2client(String targetName, String content){
+		if(!UserIPDatabase.getInstance().hasThisUser(targetName)){
+			UserIPDatabase.getInstance().update();
+		}
+		if(!UserIPDatabase.getInstance().hasThisUser(targetName)){
+			System.out.println("Sending ERROR: The use: '" + targetName + "' is not online currentlly");
+			return false;
+		}
 		String ip =UserIPDatabase.getInstance().getIP(targetName);
 		int port = UserIPDatabase.getInstance().getPort(targetName);
-		if(ip==null){
-			System.out.println("Sending ERROR: The use: " + targetName + " is not online currentlly");
-		}
 		TCPConnection connection = TCPConnection.setUpConnection(ip,port, timeout);
 		connection.sendMessage(content+'/'+user.getUsername());
 		System.out.println("Send to user: " + targetName +": "+content+"/"+user.getUsername());

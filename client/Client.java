@@ -3,7 +3,7 @@ package client;
 
 public class Client {
 	static boolean DEBUG=false;
-	static Client2Server c2serverThread=null;
+	static Client2Server c2server=null;
 	static Client2Client c2clientThread=null;
 	static  Integer clientPort=0;
 	
@@ -22,20 +22,16 @@ public class Client {
 	
 	public static void main(String[] argvs){
 		System.out.println("Welcome to the Encypted Instant Messaging App.\nClient Running...");
-		Integer[] authState = {-1};
 		User user = User.login();
 		// register the terminate Thread
 		//Runtime.getRuntime().addShutdownHook(Client.ExitHandler.getInstance());
 		try{
 			c2clientThread =Client2Client.getInstance(user);
 			Thread.sleep(1000);
-			c2serverThread =Client2Server.getInstance(authState,user);
-			// wait for authentication
-			synchronized(authState){
-				authState.wait(2000);
-			}
+			c2server =Client2Server.getInstance(user);
+			boolean state = c2server.authTheUser();
 			// if auth. failed
-			if(authState[0]!=1){
+			if(!state){
 				System.out.println("User name or password not correct, please try again");
 				terminate();
 			}else{
@@ -77,17 +73,6 @@ public class Client {
 	private static synchronized void terminate(){
 		if(Client.DEBUG){
 			System.out.println("Hi, terminate works");
-		}
-		if(c2serverThread!=null){
-			c2serverThread.t.interrupt();
-			try {
-				c2serverThread.wait(2000);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				if(Client.DEBUG){
-					e.printStackTrace();
-				}
-			}
 		}
 		if(c2clientThread!=null){
 			c2clientThread.terminate();

@@ -15,12 +15,16 @@ public class UserIPDatabase {
 		return instance;
 	}
 	
+	
 	public String onlineUsers(){
 		String users = "";
 		for(String user:user_IP.keySet()){
 			users+=user+';';
 		}
 		return users;
+	}
+	public boolean hasThisUser(String name){
+		return user_IP.containsKey(name);
 	}
 	
 	public String getIP(String name){
@@ -31,10 +35,8 @@ public class UserIPDatabase {
 		return Integer.parseInt(user_IP.get(name).split(":")[1]);
 		
 	}
-	private void update(String name, String ip){
-		synchronized(user_IP){
-			user_IP.put(name, ip);
-		}
+	protected void update(){
+		Client.c2server.requestUpdateUsersInfo();
 	}
 	
 	protected void insertUsers(String message){
