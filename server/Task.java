@@ -62,13 +62,13 @@ public class Task implements Runnable{
 	}
 	private boolean authUser(String line){
 		String[] strs = line.split(":");
-		if(strs.length<3){
+		if(strs.length<5){
 			System.out.println("Input format error");
 			return false;
 		}else{
-			if(UsersInfoDatabase.getInstance().authUser(strs[1].trim(), strs[2].trim())){
+			if(UsersInfoDatabase.getInstance().authUser(strs[3].trim(), strs[4].trim())){
 				// update user -> ip hash map
-				UserIPDatabase.getInstance().update(strs[1].trim(), ip);
+				UserIPDatabase.getInstance().update(strs[3].trim(), ip,strs[2].trim());
 				return true;
 			}else{
 				return false;

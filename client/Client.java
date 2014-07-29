@@ -5,6 +5,7 @@ public class Client {
 	static boolean DEBUG=false;
 	static Client2Server c2serverThread=null;
 	static Client2Client c2clientThread=null;
+	static  Integer clientPort=0;
 	
 	// terminate App. properly in case of user interrupting
 	static class ExitHandler extends Thread{

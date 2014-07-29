@@ -24,9 +24,9 @@ public class UserIPDatabase {
 	}
 	
 	/*********************/
-	public void update(String userName, String ip){
+	public void update(String userName, String ip,String port){
 		synchronized(user_IP){
-			user_IP.put(userName, ip);
+			user_IP.put(userName, ip+':'+port);
 		}
 	}
 	public String getIP(String userName){

@@ -24,8 +24,12 @@ public class UserIPDatabase {
 	}
 	
 	public String getIP(String name){
-		String ip=user_IP.get(name);
+		String ip=user_IP.get(name).split(":")[0];
 		return ip;
+	}
+	public int getPort(String name){
+		return Integer.parseInt(user_IP.get(name).split(":")[1]);
+		
 	}
 	private void update(String name, String ip){
 		synchronized(user_IP){

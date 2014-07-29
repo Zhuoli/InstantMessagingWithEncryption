@@ -68,7 +68,7 @@ public class Client2Server implements Runnable{
 		}
 		connection = TCPConnection.setUpConnection(hostname, port,timeout);
 		//start auth...
-		connection.sendMessage("authentication: " + user.getUsername() +":"+user.password);
+		connection.sendMessage("authentication: Client listenn on port:"+Client.clientPort+':' + user.getUsername() +":"+user.password);
 		String rec = connection.readMessage();
 		if(!rec.toLowerCase().equals("authentication:true")){
 			this.connectionTerminate();
