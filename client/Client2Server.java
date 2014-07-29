@@ -71,15 +71,11 @@ public class Client2Server{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
-		try {
-			outputStream.write(message);
-			outputStream.write(user.getHashedKey());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		connection.sendBytes(outputStream.toByteArray());
+		
+		byte[] barr=new byte[message.length+user.getHashedKey().length];
+		System.arraycopy(message, 0, barr, 0, message.length);
+		System.arraycopy(user.getHashedKey(), 0, barr, message.length, user.getHashedKey().length);
+		connection.sendBytes(barr);
 		String rec = connection.readMessage();
 		if(!rec.toLowerCase().equals("authentication:true")){
 			this.connectionTerminate();

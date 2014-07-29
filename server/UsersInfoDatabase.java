@@ -2,6 +2,7 @@ package server;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class UsersInfoDatabase {
@@ -67,12 +68,25 @@ public class UsersInfoDatabase {
 				System.out.print(usr+'\t');
 			}
 			if(users.containsKey(name)){
-				return hashIt(users.get(name)).equals(hashcode);
+				byte[] userhash = hashIt(users.get(name));
+				byte[] apphash = hashcode;
+				//System.out.println("\nUser's hashcode:\n"+getAscii(userhash));
+				//System.out.println("Login's hashcode:\n"+getAscii(apphash));
+				boolean f= Arrays.equals(userhash, apphash);
+			//	System.out.println("HashCode equal?: "+f);
+				return f;
 			}
 		}
 		System.out.println("user name: " + name + " not exists");
 		return false;
 		
+	}
+	private String getAscii(byte[] bytes){
+		StringBuilder str = new StringBuilder();
+		for(int i=0;i<bytes.length;i++){
+			str.append(bytes[i]+" ");
+		}
+		return str.toString();
 	}
 	// Hash a string using SHA256, 
 	// Given: PlanText

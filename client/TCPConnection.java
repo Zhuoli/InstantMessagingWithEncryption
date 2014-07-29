@@ -85,10 +85,15 @@ public class TCPConnection {
 		}
 	}
 	public boolean sendBytes(byte[] message){
+		StringBuilder stb=new StringBuilder();
+		for(int i : message){
+			stb.append(i+" ");
+		}
+		String str = stb.toString();
+	//	System.out.println("Gonna send:\n" +str);
 		
 		try {
-			this.out.writeBytes(""+message.length+'\n');
-			this.out.write(message);
+			this.out.writeBytes(str+'\n');
 		} catch (IOException e) {
 			System.err.println("Send failed");
 			System.exit(0);
@@ -114,19 +119,23 @@ public class TCPConnection {
 	}
 	public byte[] readBytes(){
 		byte[] message=null;
-		int len;
-		try {
-			len = Integer.parseInt(in.readLine());
-			if(len>0){
-				message=new byte[len];
-				for(int i=0;i<len;i++){
-					message[i]=(byte) in.read();
-				}
-			}else{
-			}
-		} catch (IOException e) {
-			System.err.println("read error");
-			System.exit(0);
+		String str = null;
+		try{
+			str=in.readLine();
+			str=str.trim();
+		}catch(SocketTimeoutException e){
+			System.err.println("Socket timeout. timeout=="+timeout);
+			return null;
+			
+		}catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+		String[] strs = str.split(" ");
+		message=new byte[strs.length];
+		for(int i=0;i<strs.length;i++){
+			message[i]=(byte) Integer.parseInt(strs[i]);
 		}
 		return message;
 	}

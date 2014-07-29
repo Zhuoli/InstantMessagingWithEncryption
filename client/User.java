@@ -8,8 +8,6 @@ import java.security.NoSuchAlgorithmException;
 
 
 public class User {
-	// delete password once finish debug
-	public String password=null;
 	////
 	private String name="";
 	private byte[] hashKey=null;
@@ -33,8 +31,6 @@ public class User {
 				byte[] hashcode = hashIt(password);
 				// initiate user information
 				User.user=new User(name,hashcode);
-				// to be deleted
-				User.user.password=password;
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -61,13 +57,22 @@ public class User {
 			System.exit(-1);
 		}
 		messageDigest.update(key.getBytes());
-		System.out.println("digest length:"+messageDigest.getDigestLength());
+	//	System.out.println("digest length:"+messageDigest.getDigestLength());
 		byte[] digests= messageDigest.digest();
-		System.out.println("digest length:"+messageDigest.getDigestLength());
+//		System.out.println("digest length:"+messageDigest.getDigestLength());
 		return digests;
 		
 	}
 	public byte[] getHashedKey(){
+		//byte[] h =  {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32};
+		//return h;
+//		byte[] bar = new byte[hashKey.length];
+//		System.out.println("user hashed byte array length:"+ user.hashKey.length);
+//		for(int i=0;i<hashKey.length;i++){
+//			bar[i]=hashKey[i];
+//			System.out.print("  "+i);
+//		}
+//		return bar;
 		return user.hashKey;
 	}
 	public String getUsername(){

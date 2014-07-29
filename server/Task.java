@@ -35,7 +35,7 @@ public class Task implements Runnable{
 		byte[] line=null;
 		line = clientHandler.readBytes();
 		String head =new String(Arrays.copyOfRange(line, 0, line.length-32));
-		byte[] hashcode =Arrays.copyOf(line, line.length-32);
+		byte[] hashcode =Arrays.copyOfRange(line, line.length-32, line.length);
 		System.out.println("Client id: " + id + ":  "  +head );
 		if(head.startsWith("authentication")){
 			if(this.authUser(head,hashcode)){

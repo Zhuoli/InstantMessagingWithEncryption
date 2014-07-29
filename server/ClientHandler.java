@@ -61,22 +61,23 @@ public class ClientHandler {
 	}
 	public byte[] readBytes(){
 		byte[] message=null;
-		int len;
-		try {
-			len = Integer.parseInt(in.readLine());
-			System.out.println("Gonna read length: "+len);
-			if(len>0){
-				message=new byte[len];
-				for(int i=0;i<len;i++){
-					message[i]=(byte) in.read();
-				}
-			}else{
-				System.err.println("read error");
-				System.exit(0);
-			}
-		} catch (IOException e) {
-			System.err.println("read error");
-			return message;
+		String str = null;
+		try{
+			str=in.readLine();
+			str=str.trim();
+		}catch(SocketTimeoutException e){
+			System.err.println("Socket timeout.");
+			return null;
+			
+		}catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+		String[] strs = str.split(" ");
+		message=new byte[strs.length];
+		for(int i=0;i<strs.length;i++){
+			message[i]=(byte) Integer.parseInt(strs[i]);
 		}
 		return message;
 	}
@@ -92,10 +93,15 @@ public class ClientHandler {
 		return sendBytes(message.getBytes());
 	}
 	public boolean sendBytes(byte[] message){
+		StringBuilder stb=new StringBuilder();
+		for(int i : message){
+			stb.append(i+" ");
+		}
+		String str = stb.toString();
+		//System.out.println("Gonna send:\n" +str);
 		
 		try {
-			out.writeBytes(""+message.length+'\n');
-			this.out.write(message);
+			this.out.writeBytes(str+'\n');
 		} catch (IOException e) {
 			System.err.println("Send failed");
 			System.exit(0);
