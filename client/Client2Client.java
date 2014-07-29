@@ -9,6 +9,7 @@ import java.net.SocketTimeoutException;
 
 public class Client2Client implements Runnable{
 	static private Client2Client instance =null;
+	protected  Integer clientPort=0;
 	User user = null;
 	int timeout=1000;
 	protected Thread t = null;
@@ -38,7 +39,7 @@ public class Client2Client implements Runnable{
 		if(ip==null){
 			System.out.println("Sending ERROR: The use: " + targetName + " is not online currentlly");
 		}
-		TCPConnection connection = TCPConnection.setUpConnection(ip, Client.clientPort, timeout);
+		TCPConnection connection = TCPConnection.setUpConnection(ip, this.clientPort, timeout);
 		connection.sendMessage(content+'/'+user.getUsername());
 		System.out.println("Send to user: " + targetName +": "+content+"/"+user.getUsername());
 		connection.terminate();
@@ -55,13 +56,16 @@ public class Client2Client implements Runnable{
 		if(Client.DEBUG){
 			System.out.println("Client Listening thread running...");
 		}
-		try {
-		 serverSocket=new ServerSocket(Client.clientPort);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.err.println("Client Port: " + Client.clientPort + " already in use.");
-			System.exit(0);
-		}		// register the terminate Thread
+		this.clientPort=22048;
+		while(true){
+			try {
+			 serverSocket=new ServerSocket(this.clientPort);
+			 break;
+			 } catch (IOException e) {
+				 this.clientPort++;
+				 continue;
+			}		// register the terminate Thread
+		  }
 		Socket tcpSocket;
 
 		try {

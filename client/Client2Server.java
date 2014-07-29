@@ -35,7 +35,6 @@ public class Client2Server implements Runnable{
 			BufferedReader br = new BufferedReader(new FileReader(settingPath));
 			hostname = br.readLine().split(":")[1].trim();
 			port=Integer.parseInt(br.readLine().split(":")[1].trim());
-			Client.clientPort=Integer.parseInt(br.readLine().split(":")[1].trim());
 			br.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block

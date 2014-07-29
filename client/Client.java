@@ -5,7 +5,6 @@ public class Client {
 	static boolean DEBUG=false;
 	static Client2Server c2serverThread=null;
 	static Client2Client c2clientThread=null;
-	protected static int clientPort=0;
 	
 	// terminate App. properly in case of user interrupting
 	static class ExitHandler extends Thread{
@@ -27,8 +26,9 @@ public class Client {
 		// register the terminate Thread
 		//Runtime.getRuntime().addShutdownHook(Client.ExitHandler.getInstance());
 		try{
-			c2serverThread =Client2Server.getInstance(authState,user);
 			c2clientThread =Client2Client.getInstance(user);
+			Thread.sleep(1000);
+			c2serverThread =Client2Server.getInstance(authState,user);
 			// wait for authentication
 			synchronized(authState){
 				authState.wait(2000);
