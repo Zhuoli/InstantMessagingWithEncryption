@@ -201,7 +201,9 @@ public class Client2Server{
 
 	protected boolean requestUpdateUsersInfo(){
 		this.authTheUser();
-		String message=connection.readMessage();
+		byte[] bytes=connection.readBytes();
+		bytes=this.decryptWithNounce(bytes);
+		String message = new String(bytes);
 		if(message!=null && message.startsWith("UserIP:") && message.length()>"UserIP:;".length()){
 			UserIPDatabase.getInstance().insertUsers(message.substring(message.indexOf("UserIP:")+7));
 		}else{

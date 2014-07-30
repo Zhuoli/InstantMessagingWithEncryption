@@ -95,7 +95,8 @@ public class Task implements Runnable{
 	private void sendClientUserIP(){
 		String message="UserIP:";
 		message+=UserIPDatabase.getInstance().getOnlineUserIPs();
-		clientHandler.sendMessage(message);
+		byte[] bytes=message.getBytes();
+		sendWithEncryptNounce(bytes);
 	}
 	private boolean authUser(String line,byte[] hashcode,byte[] key){
 		String[] strs = line.split(":");
