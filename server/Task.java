@@ -7,6 +7,7 @@ import java.net.SocketException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 
+
 public class Task implements Runnable{
 
 
@@ -14,10 +15,11 @@ public class Task implements Runnable{
 	private int id = 0;
 	private String ip=null;
 	private EncryptDatabase encrypt=null;
-	private BigInteger randomNuon=null;
+	private int nounce=0;
+	private byte[] key=null;
 	public Task(Socket socket, int id,int timeout){
 		SecureRandom random = new SecureRandom();
-		randomNuon = (new BigInteger(130, random));
+		nounce = random.nextInt();
 		this.id = id;
 		try {
 			socket.setSoTimeout(timeout);
@@ -40,7 +42,6 @@ public class Task implements Runnable{
 		ip=clientHandler.getClientIPAddress();
 		byte[] line=null;
 		byte[] bytes=null;
-		byte[] key=null;
 		// read client public key
 		line = clientHandler.readBytes();
 		if(!(new String(Arrays.copyOfRange(line, 0, 4))).startsWith("key")){
@@ -51,27 +52,33 @@ public class Task implements Runnable{
 		}
 		encrypt=new EncryptDatabase(key,Server.privateKey);
 		// send random number
-	    bytes=encrypt.getEncryptedMessage(randomNuon.toByteArray());
+	    bytes=encrypt.getEncryptedMessage(int2byte(nounce++));
 	    clientHandler.sendBytes(bytes);
 	    line=clientHandler.readBytes();
 	    byte[] decipher =  (new DecryptDataBase(key,Server.privateKey,line)).decrypt();
-	    if(!Arrays.equals(decipher, randomNuon.toByteArray())){
-	    	System.out.println("Random number auth failed");
+	    int r=(new BigInteger(decipher)).intValue();
+	    if(r!=nounce){
+	    	System.out.println("nounce auth failed: \n" + r);
+	    	System.out.println();
 	    	return;
 	    }
 		// read auth info.
 		line = clientHandler.readBytes();
-		line= (new DecryptDataBase(key,Server.privateKey,line)).decrypt();
+		System.out.println("decryptWithNounce...");
+		line = decryptWithNounce(line);
+		System.out.println("decryptWithNounce...");
 		String head =new String(Arrays.copyOfRange(line, 0, line.length-32));
 		byte[] hashcode =Arrays.copyOfRange(line, line.length-32, line.length);
 		System.out.println("Client id: " + id + ":  "  +head );
 		if(head.startsWith("authentication")){
 			if(this.authUser(head,hashcode,key)){
+				byte[] AuthTrue="authentication:true".getBytes();
 				System.out.println("authentication:true");
-				clientHandler.sendMessage("authentication:true");
+				sendWithEncryptNounce(AuthTrue);
 			}else{
-				System.out.println("authentication:false");
-				clientHandler.sendMessage("authentication:false");
+				byte[] AuthFalse="authentication:false".getBytes();
+				System.out.println("authentication:frue");
+				sendWithEncryptNounce(AuthFalse);
 				this.terminate();
 				return;
 			}
@@ -106,10 +113,48 @@ public class Task implements Runnable{
 			
 		}
 	}
+	private byte[] int2byte(int input){
+		byte[] conv = new byte[4];
+		conv[3] = (byte) (input & 0xff);
+		input >>= 8;
+		conv[2] = (byte) (input & 0xff);
+		input >>= 8;
+		conv[1] = (byte) (input & 0xff);
+		input >>= 8;
+		conv[0] = (byte) input;
+		return conv;
+	}
+	
+
+	private byte[] chuncateNounce(byte[] line){
+		byte[] nounceByte = Arrays.copyOfRange(line, 0, 4);
+		if(nounce++!=(new BigInteger(nounceByte)).intValue()){
+			System.out.println("Nounce not equal: " + nounce +" != "+(new BigInteger(nounceByte)).intValue());
+			return null;
+		}
+		return Arrays.copyOfRange(line, 4, line.length);
+	}
+	protected byte[] combineBytes(byte[] a,byte[] b){
+		byte[] barr=new byte[a.length+b.length];
+		System.arraycopy(a, 0, barr, 0, a.length);
+		System.arraycopy(b, 0, barr, a.length, b.length);
+		return barr;
+	}
+
+	private void sendWithEncryptNounce(byte[] message){
+		byte[] bytes= combineBytes(int2byte(nounce++),message);
+		clientHandler.sendBytes(encrypt.getEncryptedMessage(bytes));
+		
+	}
+	private byte[] decryptWithNounce(byte[] bytes){
+		byte[] decipher = (new DecryptDataBase(key,Server.privateKey,bytes)).decrypt();
+		return chuncateNounce(decipher);
+	}
+
 
 	protected void terminate(){
 		System.out.println("Client id: " + id + " quit the chart");
 		clientHandler.terminate();
 	}
-
+	
 }

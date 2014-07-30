@@ -38,20 +38,21 @@ public class Decrypt {
      protected byte[] decrypt(){
     	byte[] plaintext=null;
  		try{
-		// Public, private and signature instances
-
-		Cipher secCipher = Cipher.getInstance("AES");
-		SecretKey aesKey=null;
-		// verify and decrypt aes key
-			aesKey=getSecKey();
-		// decryt cipher text
-     	secCipher.init(Cipher.DECRYPT_MODE,aesKey);
-     	 plaintext=secCipher.doFinal(cipher_text);
-     	if(DEBUG)
-	     	for(byte b : plaintext){
-	     		System.out.print((char)b);
-	     	}
+			// Public, private and signature instances
+	
+			Cipher secCipher = Cipher.getInstance("AES");
+			SecretKey aesKey=null;
+			// verify and decrypt aes key
+				aesKey=getSecKey();
+			// decryt cipher text
+	     	secCipher.init(Cipher.DECRYPT_MODE,aesKey);
+	     	 plaintext=secCipher.doFinal(cipher_text);
+//     	   if(Client.DEBUG)
+//	     	for(byte b : plaintext){
+//	     		System.out.print((char)b);
+//	     	}
 		}catch(Exception e){
+			System.out.println("decrypt error");
 			System.out.println(e.getMessage());
 			System.exit(0);
 		}
@@ -73,8 +74,10 @@ public class Decrypt {
 		prvKey = rsaKeyFactory.generatePrivate(privateSpec);
 		pubKey = rsaKeyFactory.generatePublic(publicSpec);
      	// verify
-     	if(!verify(sig,pubKey))
+     	if(!verify(sig,pubKey)){
+     		System.out.println("Verify Failed");
      		System.exit(0);
+     	}
      	//Decrypt
      	publicChiper.init(Cipher.UNWRAP_MODE, prvKey);
      	aesKey = (SecretKey)publicChiper.unwrap(aesKeyEncyrpted,"AES",Cipher.SECRET_KEY);

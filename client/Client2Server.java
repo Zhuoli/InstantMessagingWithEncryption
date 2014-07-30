@@ -9,6 +9,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.util.Arrays;
 
 
 
@@ -25,6 +27,8 @@ public class Client2Server{
 	private User user=null;
 	private Encrypt encrypt=null;
 	private Decrypt decrypt=null;
+	private int nounce = 0;
+	
 	private Client2Server(){
 		String[] settingPaths={"./src/client/setting.conf","./client/setting.conf"};
 		String settingPath="";
@@ -61,6 +65,9 @@ public class Client2Server{
 	// read bytes from a file
 	private  byte[] readByteFromFile(String fileName) {
 		File f = new File(fileName);
+		if(!f.isFile()){
+			f=new File("./src"+fileName.substring(1));
+		}
 		byte[] buffer=null;
 		try {
 			if (f.length() > Integer.MAX_VALUE)
@@ -74,7 +81,7 @@ public class Client2Server{
 			dis.close();
 			ios.close();
 		} catch (Exception e) {
-			System.err.println("read file error: "+fileName);
+			System.err.println("read file error: "+System.getProperty("user.dir")+'/'+fileName);
 			System.exit(0);
 		};
 		
@@ -105,6 +112,7 @@ public class Client2Server{
 		//start auth...
 		byte[] message=null;
 		byte[] barr=null;
+		byte[] bytes=null;
 		// send public key
 		try {
 			barr=combineBytes(("key:").getBytes("US-ASCII"),Client.clientPublicKey);
@@ -115,9 +123,10 @@ public class Client2Server{
 			return false;
 		}
 		// read random number
-		byte[] bytes = connection.readBytes();
+		bytes=connection.readBytes();
 		bytes=(new Decrypt(serverKey,Client.clientPrivateKey,bytes)).decrypt();
-		barr=encrypt.getEncryptedMessage(bytes);
+		nounce = (new BigInteger(bytes)).intValue();
+		barr=encrypt.getEncryptedMessage(int2byte(++nounce));
 		connection.sendBytes(barr);
 		// send name and hashedpassword
 		try {
@@ -127,11 +136,11 @@ public class Client2Server{
 			e.printStackTrace();
 			return false;
 		}
-		
 		barr = combineBytes(message,user.getHashedKey());
-		barr=encrypt.getEncryptedMessage(barr);
-		connection.sendBytes(barr);
-		String rec = connection.readMessage();
+		sendEncryptWithNounce(barr);
+		bytes = connection.readBytes();
+		String rec = new String(decryptWithNounce(bytes));
+		System.out.println("Got string: "+rec);
 		if(!rec.toLowerCase().equals("authentication:true")){
 			this.connectionTerminate();
 			if(Client.DEBUG){
@@ -143,6 +152,37 @@ public class Client2Server{
 		// ...auth done
 		//send client public key:
 		return true;
+	}
+	private byte[] decryptWithNounce(byte[] message){
+		byte[] decipher =(new Decrypt(serverKey,Client.clientPrivateKey,message)).decrypt();
+		return chuncateNounce(decipher);
+	}
+	private void sendEncryptWithNounce(byte[] message){
+		byte[] bytes= combineBytes(int2byte(nounce++),message);
+		bytes=encrypt.getEncryptedMessage(bytes);
+		connection.sendBytes(bytes);
+	}
+	private byte[] chuncateNounce(byte[] line){
+		byte[] nounceByte = Arrays.copyOfRange(line, 0, 4);
+		if(nounce++!=(new BigInteger(nounceByte)).intValue()){
+			System.out.println("Nounce not equal: " + nounce +" != "+(new BigInteger(nounceByte)).intValue());
+			return null;
+		}
+		return Arrays.copyOfRange(line, 4, line.length);
+	}
+	private byte[] int2byte(int input){
+		byte[] conv = new byte[4];
+		conv[3] = (byte) (input & 0xff);
+		input >>= 8;
+		conv[2] = (byte) (input & 0xff);
+		input >>= 8;
+		conv[1] = (byte) (input & 0xff);
+		input >>= 8;
+		conv[0] = (byte) input;
+		return conv;
+	}
+	private int byte2int(byte[] input){
+		return (new BigInteger(input).intValue());
 	}
 	protected byte[] combineBytes(byte[] a,byte[] b){
 		byte[] barr=new byte[a.length+b.length];

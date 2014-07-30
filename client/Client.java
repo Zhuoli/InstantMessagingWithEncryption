@@ -78,6 +78,9 @@ public class Client {
 	// read bytes from a file
 	private static  byte[] readByteFromFile(String fileName) {
 		File f = new File(fileName);
+		if(!f.isFile()){
+			f=new File("./src"+fileName.substring(1));
+		}
 		byte[] buffer=null;
 		try {
 			if (f.length() > Integer.MAX_VALUE)
@@ -91,7 +94,7 @@ public class Client {
 			dis.close();
 			ios.close();
 		} catch (Exception e) {
-			System.err.println("read file error: "+fileName);
+			System.err.println("read file error: "+System.getProperty("user.dir")+'/'+fileName);
 			System.exit(0);
 		};
 		
