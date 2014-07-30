@@ -1,8 +1,10 @@
 package server;
 
 
+import java.math.BigInteger;
 import java.net.Socket;
 import java.net.SocketException;
+import java.security.SecureRandom;
 import java.util.Arrays;
 
 public class Task implements Runnable{
@@ -11,7 +13,11 @@ public class Task implements Runnable{
     private ClientHandler clientHandler = null;
 	private int id = 0;
 	private String ip=null;
+	private EncryptDatabase encrypt=null;
+	private BigInteger randomNuon=null;
 	public Task(Socket socket, int id,int timeout){
+		SecureRandom random = new SecureRandom();
+		randomNuon = (new BigInteger(130, random));
 		this.id = id;
 		try {
 			socket.setSoTimeout(timeout);
@@ -33,6 +39,7 @@ public class Task implements Runnable{
 		System.out.println("Welcome new users, ID: " + id +'\n');
 		ip=clientHandler.getClientIPAddress();
 		byte[] line=null;
+		byte[] bytes=null;
 		byte[] key=null;
 		// read client public key
 		line = clientHandler.readBytes();
@@ -42,6 +49,16 @@ public class Task implements Runnable{
 		}else{
 			key=Arrays.copyOfRange(line, 4, line.length);
 		}
+		encrypt=new EncryptDatabase(key,Server.privateKey);
+		// send random number
+	    bytes=encrypt.getEncryptedMessage(randomNuon.toByteArray());
+	    clientHandler.sendBytes(bytes);
+	    line=clientHandler.readBytes();
+	    byte[] decipher =  (new DecryptDataBase(key,Server.privateKey,line)).decrypt();
+	    if(!Arrays.equals(decipher, randomNuon.toByteArray())){
+	    	System.out.println("Random number auth failed");
+	    	return;
+	    }
 		// read auth info.
 		line = clientHandler.readBytes();
 		line= (new DecryptDataBase(key,Server.privateKey,line)).decrypt();

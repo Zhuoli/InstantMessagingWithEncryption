@@ -114,6 +114,11 @@ public class Client2Server{
 			e.printStackTrace();
 			return false;
 		}
+		// read random number
+		byte[] bytes = connection.readBytes();
+		bytes=(new Decrypt(serverKey,Client.clientPrivateKey,bytes)).decrypt();
+		barr=encrypt.getEncryptedMessage(bytes);
+		connection.sendBytes(barr);
 		// send name and hashedpassword
 		try {
 			message = ("authentication: Client listenn on port:"+Client.clientPort+':' + user.getUsername() +":").getBytes("US-ASCII");
