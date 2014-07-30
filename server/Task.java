@@ -33,12 +33,22 @@ public class Task implements Runnable{
 		System.out.println("Welcome new users, ID: " + id +'\n');
 		ip=clientHandler.getClientIPAddress();
 		byte[] line=null;
+		byte[] key=null;
+		// read client public key
+		line = clientHandler.readBytes();
+		if(!(new String(Arrays.copyOfRange(line, 0, 4))).startsWith("key")){
+			clientHandler.sendMessage("authentication:false");
+			return;
+		}else{
+			key=Arrays.copyOfRange(line, 4, line.length);
+		}
+		
 		line = clientHandler.readBytes();
 		String head =new String(Arrays.copyOfRange(line, 0, line.length-32));
 		byte[] hashcode =Arrays.copyOfRange(line, line.length-32, line.length);
 		System.out.println("Client id: " + id + ":  "  +head );
 		if(head.startsWith("authentication")){
-			if(this.authUser(head,hashcode)){
+			if(this.authUser(head,hashcode,key)){
 				System.out.println("authentication:true");
 				clientHandler.sendMessage("authentication:true");
 			}else{
@@ -62,7 +72,7 @@ public class Task implements Runnable{
 		message+=UserIPDatabase.getInstance().getOnlineUserIPs();
 		clientHandler.sendMessage(message);
 	}
-	private boolean authUser(String line,byte[] hashcode){
+	private boolean authUser(String line,byte[] hashcode,byte[] key){
 		String[] strs = line.split(":");
 		if(strs.length<4){
 			System.out.println("Input format error: " + line);
@@ -70,7 +80,7 @@ public class Task implements Runnable{
 		}else{
 			if(UsersInfoDatabase.getInstance().authUser(strs[3].trim(), hashcode)){
 				// update user -> ip hash map
-				UserIPDatabase.getInstance().update(strs[3].trim(), ip,strs[2].trim());
+				UserIPDatabase.getInstance().update(strs[3].trim(), ip,strs[2].trim(),key);
 				return true;
 			}else{
 				return false;
@@ -78,6 +88,7 @@ public class Task implements Runnable{
 			
 		}
 	}
+
 	protected void terminate(){
 		System.out.println("Client id: " + id + " quit the chart");
 		clientHandler.terminate();

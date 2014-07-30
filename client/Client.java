@@ -12,6 +12,7 @@ public class Client {
 	static byte[] clientPublicKey=null;
 	static byte[] clientPrivateKey=null;
 	
+	static User user = null;
 	// terminate App. properly in case of user interrupting
 	static class ExitHandler extends Thread{
 		private ExitHandler(){
@@ -27,7 +28,8 @@ public class Client {
 	
 	public static void main(String[] argvs){
 		System.out.println("Welcome to the Encypted Instant Messaging App.\nClient Running...");
-		User user = User.login();
+		user = User.login();
+		generateKeyPair();
 		// register the terminate Thread
 		//Runtime.getRuntime().addShutdownHook(Client.ExitHandler.getInstance());
 		try{
@@ -41,7 +43,6 @@ public class Client {
 				terminate();
 			}else{
 				System.out.println("Auth succeed");
-				generateKeyPair();
 				// set up a listen socket port to connection from other clients
 				// interact console
 				while(true){
@@ -81,6 +82,21 @@ public class Client {
 			}
 			String content = userInput.substring(strs[0].length()+strs[1].length()+2);
 			c2clientThread.send2client(strs[1],content);
+		}else if(userInput.toLowerCase().startsWith("key")){
+			String[] strs=userInput.split(" ");
+			if(strs.length==2){
+				byte[] brr=null;
+				if(strs[1].equals(user.getUsername())){
+					brr =Client.clientPublicKey;
+				}else{
+					brr=UserIPDatabase.getInstance().getKey(strs[1]);
+				}
+				for(int i : brr){
+					System.out.print(" "+i+" ");
+				}
+				System.out.println();
+				
+			}
 		}else{
 			System.out.println("\nUser Input Error, Usage:\nlist\nsend USER MESSAGE\n\n");
 		}

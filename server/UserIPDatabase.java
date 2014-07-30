@@ -12,8 +12,10 @@ import java.util.HashMap;
 public class UserIPDatabase {
 	static UserIPDatabase instance = null;
 	HashMap<String,String> user_IP=null;
+	HashMap<String,byte[]> user_key=null;
 	private UserIPDatabase(){
 		user_IP=new HashMap<String,String>();
+		user_key=new HashMap<String,byte[]>();
 	}
 	
 	public static UserIPDatabase getInstance(){
@@ -24,16 +26,26 @@ public class UserIPDatabase {
 	}
 	
 	/*********************/
-	public void update(String userName, String ip,String port){
+	public void update(String userName, String ip,String port,byte[] key){
 		synchronized(user_IP){
 			user_IP.put(userName, ip+':'+port);
 		}
+		user_key.put(userName, key);
 	}
 	public String getIP(String userName){
 		String ret="";
 		synchronized(user_IP){
 			if(user_IP.containsKey(userName)){
 				ret= user_IP.get(userName);
+			}
+		}
+		return ret;
+	}
+	public byte[] getKey(String userName){
+		byte[] ret=null;
+		synchronized(user_key){
+			if(user_key.containsKey(userName)){
+				ret = user_key.get(userName);
 			}
 		}
 		return ret;

@@ -48,4 +48,14 @@ public class UserIPDatabase {
 		}
 		}
 	}
+	public byte[] getKey(String userName){
+		byte[] ret=null;
+//		synchronized(user_key){
+//			if(user_key.containsKey(userName)){
+//				ret = user_key.get(userName);
+//			}
+//		}
+		return ret;
+	}
+
 }

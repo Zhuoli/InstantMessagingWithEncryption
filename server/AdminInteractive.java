@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+
+
 /** 
  *  An interactive interface for Administrator to control this service
  * @author zhuoli
@@ -58,10 +60,23 @@ public class AdminInteractive implements Runnable{
 			this.showIP(input);
 		}else if(input.startsWith("del ")){
 			this.delUser(input);
+		}else if(input.startsWith("key ")){
+			this.showKey(input);
 		}else{
 			return;
 		}
 		
+	}
+	private void showKey(String input){
+		String[] strs = input.split(" ");
+		if(strs.length==2){
+			String username = strs[1];
+			byte[] bytes = UserIPDatabase.getInstance().getKey(username);
+			for(int i : bytes){
+				System.out.print(" "+i+" ");
+			}
+			System.out.println();
+		}
 	}
 	
 	private void delUser(String input){

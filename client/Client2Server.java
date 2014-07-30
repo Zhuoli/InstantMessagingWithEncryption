@@ -89,6 +89,13 @@ public class Client2Server{
 		return instance;
 	}
 	// authenticate	 the user
+	/**
+	 * C --> S: public key of client
+	 * C --> S: encrypted hashed key and name
+	 * S --> C: encrypted auth state
+	 * @return
+	 */
+	
 	public  boolean authTheUser(){
 		if(user==null){
 			System.out.println("User is null");
@@ -97,16 +104,26 @@ public class Client2Server{
 		connection = TCPConnection.setUpConnection(hostname, port,timeout);
 		//start auth...
 		byte[] message=null;
+		byte[] barr=null;
+		// send public key
+		try {
+			barr=combineBytes(("key:").getBytes("US-ASCII"),Client.clientPublicKey);
+			connection.sendBytes(barr);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		// send name and hashedpassword
 		try {
 			message = ("authentication: Client listenn on port:"+Client.clientPort+':' + user.getUsername() +":").getBytes("US-ASCII");
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return false;
 		}
 		
-		byte[] barr=new byte[message.length+user.getHashedKey().length];
-		System.arraycopy(message, 0, barr, 0, message.length);
-		System.arraycopy(user.getHashedKey(), 0, barr, message.length, user.getHashedKey().length);
+		 barr = combineBytes(message,user.getHashedKey());
 		connection.sendBytes(barr);
 		String rec = connection.readMessage();
 		if(!rec.toLowerCase().equals("authentication:true")){
@@ -116,10 +133,18 @@ public class Client2Server{
 			}
 			return false;
 		}
+
 		// ...auth done
-		//	this.connectionTerminate();
+		//send client public key:
 		return true;
 	}
+	protected byte[] combineBytes(byte[] a,byte[] b){
+		byte[] barr=new byte[a.length+b.length];
+		System.arraycopy(a, 0, barr, 0, a.length);
+		System.arraycopy(b, 0, barr, a.length, b.length);
+		return barr;
+	}
+	
 	public void connectionTerminate(){
 		if(this.connection!=null){
 			this.connection.terminate();
