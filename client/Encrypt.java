@@ -40,6 +40,33 @@ public class Encrypt {
 			KeyGenerator aesKeyGen;
 				aesKeyGen = KeyGenerator.getInstance("AES");
 			aesKey = aesKeyGen.generateKey();
+			cipherText=aesEncrypt(plain_text.getBytes(),aesKey);
+			/*************  RSA Encryption *****************/
+			rsaEncrypt(aesKey);
+
+			outputStream.write(signature);
+			outputStream.write(aesKeyEncyrpted);
+			outputStream.write(cipherText);
+
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	   return outputStream.toByteArray();
+   }
+   protected byte[] getEncryptedMessage(byte[] plain_text){
+	   Key aesKey;
+
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+		try {
+	        /*********** Symmetric Encryption *************/	
+			// Symmetric (AES) key generation
+			KeyGenerator aesKeyGen;
+				aesKeyGen = KeyGenerator.getInstance("AES");
+			aesKey = aesKeyGen.generateKey();
 			cipherText=aesEncrypt(plain_text,aesKey);
 			/*************  RSA Encryption *****************/
 			rsaEncrypt(aesKey);
@@ -113,9 +140,9 @@ public class Encrypt {
 			signature = sig.sign();
   		}
   		// AES encrypt plain text
-  		private byte[] aesEncrypt(String plaintext,Key aesKey) throws Exception{
+  		private byte[] aesEncrypt(byte[] plaintext,Key aesKey) throws Exception{
   			byte[] cipherText=null;
-			plainText = plaintext.getBytes();
+			plainText = plaintext;
 			Cipher secCipher = Cipher.getInstance("AES");
 			// setup IV key with random data and encrypt the file using AES key.
 			secCipher.init(Cipher.ENCRYPT_MODE, aesKey);

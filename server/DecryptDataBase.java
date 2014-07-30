@@ -73,8 +73,10 @@ public class DecryptDataBase {
 		prvKey = rsaKeyFactory.generatePrivate(privateSpec);
 		pubKey = rsaKeyFactory.generatePublic(publicSpec);
      	// verify
-     	if(!verify(sig,pubKey))
+     	if(!verify(sig,pubKey)){
+     		System.out.println("verify failed");
      		System.exit(0);
+     	}
      	//Decrypt
      	publicChiper.init(Cipher.UNWRAP_MODE, prvKey);
      	aesKey = (SecretKey)publicChiper.unwrap(aesKeyEncyrpted,"AES",Cipher.SECRET_KEY);

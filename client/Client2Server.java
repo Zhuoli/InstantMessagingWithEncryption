@@ -19,6 +19,8 @@ public class Client2Server{
 	static private int port=0;
 	static private int timeout=10000;
 	
+	
+	protected byte[] serverKey=null;
 	TCPConnection connection =null;
 	private User user=null;
 	private Encrypt encrypt=null;
@@ -26,7 +28,6 @@ public class Client2Server{
 	private Client2Server(){
 		String[] settingPaths={"./src/client/setting.conf","./client/setting.conf"};
 		String settingPath="";
-		byte[] serverKey=null;
 		for(String path : settingPaths){
 			File file = new File(path);
 			if(file.isFile()){
@@ -54,8 +55,7 @@ public class Client2Server{
 			System.err.println("Client configure file 'setting.conf' format not correct:\nhostname: IP\nport: number");
 		}
 
-		//encrypt=new Encrypt();
-		//decrypt=new Decrypt();
+		encrypt=new Encrypt(serverKey,Client.clientPrivateKey);
 	}
 	
 	// read bytes from a file
@@ -123,7 +123,8 @@ public class Client2Server{
 			return false;
 		}
 		
-		 barr = combineBytes(message,user.getHashedKey());
+		barr = combineBytes(message,user.getHashedKey());
+		barr=encrypt.getEncryptedMessage(barr);
 		connection.sendBytes(barr);
 		String rec = connection.readMessage();
 		if(!rec.toLowerCase().equals("authentication:true")){

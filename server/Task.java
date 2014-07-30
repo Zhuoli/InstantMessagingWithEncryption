@@ -42,8 +42,9 @@ public class Task implements Runnable{
 		}else{
 			key=Arrays.copyOfRange(line, 4, line.length);
 		}
-		
+		// read auth info.
 		line = clientHandler.readBytes();
+		line= (new DecryptDataBase(key,Server.privateKey,line)).decrypt();
 		String head =new String(Arrays.copyOfRange(line, 0, line.length-32));
 		byte[] hashcode =Arrays.copyOfRange(line, line.length-32, line.length);
 		System.out.println("Client id: " + id + ":  "  +head );

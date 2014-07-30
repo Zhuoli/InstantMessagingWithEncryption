@@ -1,5 +1,9 @@
 package client;
 
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 
@@ -57,15 +61,42 @@ public class Client {
 
 	}
 	private static void generateKeyPair(){
-		 try {
-			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-	        keyGen.initialize(2048);
-	        clientPublicKey = keyGen.genKeyPair().getPublic().getEncoded();
-	        clientPrivateKey=keyGen.generateKeyPair().getPrivate().getEncoded();
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		 try {
+//			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+//	        keyGen.initialize(2048);
+//	        clientPublicKey = keyGen.genKeyPair().getPublic().getEncoded();
+//	        clientPrivateKey=keyGen.generateKeyPair().getPrivate().getEncoded();
+//		} catch (NoSuchAlgorithmException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		clientPublicKey=readByteFromFile("./client/public_key.der");
+		clientPrivateKey=readByteFromFile("./client/private_key.der");
+		
+	}
+	
+	// read bytes from a file
+	private static  byte[] readByteFromFile(String fileName) {
+		File f = new File(fileName);
+		byte[] buffer=null;
+		try {
+			if (f.length() > Integer.MAX_VALUE)
+				System.out.println("File is too large");
+	
+			buffer = new byte[(int) f.length()];
+			InputStream ios;
+				ios = new FileInputStream(f);
+			DataInputStream dis = new DataInputStream(ios);
+			dis.readFully(buffer);
+			dis.close();
+			ios.close();
+		} catch (Exception e) {
+			System.err.println("read file error: "+fileName);
+			System.exit(0);
+		};
+		
+		return buffer;
+		
 	}
 	// parse and process user input
 	// if 'list', then list all the online users
