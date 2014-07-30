@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 
 public class Client2Client implements Runnable{
 	static private Client2Client instance =null;
@@ -43,7 +44,13 @@ public class Client2Client implements Runnable{
 		}
 		String ip =UserIPDatabase.getInstance().getIP(targetName);
 		int port = UserIPDatabase.getInstance().getPort(targetName);
-		TCPConnection connection = TCPConnection.setUpConnection(ip,port, timeout);
+		TCPConnection connection = null;
+		try {
+			connection=TCPConnection.setUpConnection(ip,port, timeout);
+		} catch (Exception e){
+			System.err.println("Client has off line.");
+			return false;
+		}
 		connection.sendMessage(content+'/'+user.getUsername());
 		System.out.println("Send to user: " + targetName +": "+content+"/"+user.getUsername());
 		connection.terminate();

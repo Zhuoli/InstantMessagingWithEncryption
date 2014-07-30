@@ -18,40 +18,13 @@ public class TCPConnection {
 	private TCPConnection(int timeout){
 		this.timeout=timeout;
 	}
-	public static TCPConnection setUpConnection(String host, int port,int timeout){
+	public static TCPConnection setUpConnection(String host, int port,int timeout) throws UnknownHostException, IOException{
 			TCPConnection instance=new TCPConnection(timeout);
+			instance.clientSocket=new Socket(host,port);
+			instance.clientSocket.setSoTimeout(timeout);
+			instance.in =new BufferedReader(new InputStreamReader(instance.clientSocket.getInputStream()));
+		    instance.out = new DataOutputStream(instance.clientSocket.getOutputStream());
 
-			try {
-				instance.clientSocket=new Socket(host,port);
-				instance.clientSocket.setSoTimeout(timeout);
-			}catch(SocketException e){
-				System.err.println("Set Socket Timeout failed or Server connection refused.");
-				//e.printStackTrace();
-				System.exit(-1);
-			}
-			catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
-				if(Client.DEBUG){
-					e.printStackTrace();
-				}
-				System.err.println("Unknown Host:" + host +":"+port);
-				System.exit(-1);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				if(Client.DEBUG){
-					e.printStackTrace();
-				}
-				System.err.println("TCP IO Error");
-				System.exit(-1);
-			}
-		      try {
-		    	  instance.in =new BufferedReader(new InputStreamReader(instance.clientSocket.getInputStream()));
-		    	  instance.out = new DataOutputStream(instance.clientSocket.getOutputStream());
-
-		  		} catch (IOException e) {
-					// TODO Auto-generated catch block
-				 e.printStackTrace();
-	  		  }
 			return instance;
 	}
 	public static TCPConnection setUpConnection(Socket clientSocket, int timeout){

@@ -108,7 +108,12 @@ public class Client2Server{
 			System.out.println("User is null");
 			return false;
 		}
-		connection = TCPConnection.setUpConnection(hostname, port,timeout);
+		try{
+			connection = TCPConnection.setUpConnection(hostname, port,timeout);
+		}catch(Exception e){
+			System.err.println("Failed to open server's Socket!");
+			return false;
+		}
 		//start auth...
 		byte[] message=null;
 		byte[] barr=null;
@@ -140,7 +145,6 @@ public class Client2Server{
 		sendEncryptWithNounce(barr);
 		bytes = connection.readBytes();
 		String rec = new String(decryptWithNounce(bytes));
-		System.out.println("Got string: "+rec);
 		if(!rec.toLowerCase().equals("authentication:true")){
 			this.connectionTerminate();
 			if(Client.DEBUG){
@@ -209,7 +213,7 @@ public class Client2Server{
 		}else{
 			return false;
 		}
-		System.out.println("Server: " + message);
+		//System.out.println("Server: " + message);
 		connection.terminate();
 		return true;
 	}
