@@ -1,4 +1,4 @@
-package server;
+package client;
 
 import java.io.DataInputStream;
 import java.io.File;
@@ -15,7 +15,7 @@ import java.util.Arrays;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
-public class DecryptDataBase {
+public class Decrypt {
 	static int KEY_LEN=256;
 	static boolean DEBUG = false;
 	byte[] signature=null;
@@ -27,7 +27,7 @@ public class DecryptDataBase {
      /** Init ***/
 
      
-     protected DecryptDataBase(byte[] publicKey,byte[] privateKey,byte[] cipher_text){
+     protected Decrypt(byte[] publicKey,byte[] privateKey,byte[] cipher_text){
     	 this.publicKey=publicKey;
     	 this.privateKey=privateKey;
     	 this.cipher_text=cipher_text;

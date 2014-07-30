@@ -1,10 +1,13 @@
 package server;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,8 +21,8 @@ public class Server {
 	static AdminInteractive admin = null;
 	static int PortNumber=0;
 	static int clientPort=0;
-	static String public_key_filename=null;
-	static String private_key_filename=null;
+	static byte[] publicKey=null;
+	static byte[] privateKey=null;
 	// terminate App. properly in case of user interrupting
 	static class ExitHandler extends Thread{
 		private ExitHandler(){
@@ -77,16 +80,8 @@ public class Server {
 			BufferedReader br = new BufferedReader(new FileReader(settingPath));
 			PortNumber=Integer.parseInt(br.readLine().split(":")[1].trim());
 			clientPort=Integer.parseInt(br.readLine().split(":")[1].trim());
-			public_key_filename = br.readLine().split(":")[1].trim();
-			if(!isFile(public_key_filename)){
-				System.err.println("Public Key file not exist,  "+ public_key_filename);
-				System.exit(0);
-			}
-			private_key_filename= br.readLine().split(":")[1].trim();
-			if(!isFile(private_key_filename)){
-				System.err.println("private Key file not exist,  "+ private_key_filename);
-				System.exit(0);
-			}
+			publicKey = readByteFromFile(br.readLine().split(":")[1].trim());
+			privateKey=readByteFromFile( br.readLine().split(":")[1].trim());
 			br.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -109,5 +104,28 @@ public class Server {
           return false;
         }
       return true;
-    }
+    }	
+	// read bytes from a file
+	private static  byte[] readByteFromFile(String fileName) {
+		File f = new File(fileName);
+		byte[] buffer=null;
+		try {
+			if (f.length() > Integer.MAX_VALUE)
+				System.out.println("File is too large");
+	
+			buffer = new byte[(int) f.length()];
+			InputStream ios;
+				ios = new FileInputStream(f);
+			DataInputStream dis = new DataInputStream(ios);
+			dis.readFully(buffer);
+			dis.close();
+			ios.close();
+		} catch (Exception e) {
+			System.err.println("read file error");
+			System.exit(0);
+		};
+		
+		return buffer;
+		
+	}
 }

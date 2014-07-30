@@ -1,4 +1,4 @@
-package server;
+package client;
 
 
 import javax.crypto.*;
@@ -7,11 +7,11 @@ import java.security.*;
 import java.security.spec.*;
 import java.io.*;
 
-public class EncryptDatabase {
+public class Encrypt {
     // byte representation of parameters and IV
     byte[] iv, cipherText, publicKey, plainText, privateKey, signature, aesKeyEncyrpted;
 
-	public EncryptDatabase(byte[] publicKey,byte[] privateKey ){
+	public Encrypt(byte[] publicKey,byte[] privateKey ){
 		this.publicKey=publicKey;
 		this.privateKey=privateKey;
 	}
@@ -68,7 +68,7 @@ public class EncryptDatabase {
 				e.printStackTrace();
 				System.exit(0);
 			}
-		   if(Server.DEBUG){
+		   if(Client.DEBUG){
 		  	  // write signature
 			   System.out.println("Signature in HEX");
 	           System.out.println("Length: "+ signature.length);

@@ -1,11 +1,13 @@
 package client;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 
@@ -19,10 +21,12 @@ public class Client2Server{
 	
 	TCPConnection connection =null;
 	private User user=null;
-	
+	private Encrypt encrypt=null;
+	private Decrypt decrypt=null;
 	private Client2Server(){
 		String[] settingPaths={"./src/client/setting.conf","./client/setting.conf"};
 		String settingPath="";
+		byte[] serverKey=null;
 		for(String path : settingPaths){
 			File file = new File(path);
 			if(file.isFile()){
@@ -34,6 +38,7 @@ public class Client2Server{
 			BufferedReader br = new BufferedReader(new FileReader(settingPath));
 			hostname = br.readLine().split(":")[1].trim();
 			port=Integer.parseInt(br.readLine().split(":")[1].trim());
+			serverKey=this.readByteFromFile(br.readLine().split(":")[1].trim());
 			br.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -48,6 +53,33 @@ public class Client2Server{
 			}
 			System.err.println("Client configure file 'setting.conf' format not correct:\nhostname: IP\nport: number");
 		}
+
+		//encrypt=new Encrypt();
+		//decrypt=new Decrypt();
+	}
+	
+	// read bytes from a file
+	private  byte[] readByteFromFile(String fileName) {
+		File f = new File(fileName);
+		byte[] buffer=null;
+		try {
+			if (f.length() > Integer.MAX_VALUE)
+				System.out.println("File is too large");
+	
+			buffer = new byte[(int) f.length()];
+			InputStream ios;
+				ios = new FileInputStream(f);
+			DataInputStream dis = new DataInputStream(ios);
+			dis.readFully(buffer);
+			dis.close();
+			ios.close();
+		} catch (Exception e) {
+			System.err.println("read file error: "+fileName);
+			System.exit(0);
+		};
+		
+		return buffer;
+		
 	}
 	public static Client2Server getInstance(User user){
 		if(instance==null){

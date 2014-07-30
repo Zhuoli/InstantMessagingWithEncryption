@@ -1,11 +1,16 @@
 package client;
 
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+
 
 public class Client {
 	static boolean DEBUG=false;
 	static Client2Server c2server=null;
 	static Client2Client c2clientThread=null;
 	static  Integer clientPort=0;
+	static byte[] clientPublicKey=null;
+	static byte[] clientPrivateKey=null;
 	
 	// terminate App. properly in case of user interrupting
 	static class ExitHandler extends Thread{
@@ -36,6 +41,7 @@ public class Client {
 				terminate();
 			}else{
 				System.out.println("Auth succeed");
+				generateKeyPair();
 				// set up a listen socket port to connection from other clients
 				// interact console
 				while(true){
@@ -49,7 +55,17 @@ public class Client {
 		}
 
 	}
-	
+	private static void generateKeyPair(){
+		 try {
+			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+	        keyGen.initialize(2048);
+	        clientPublicKey = keyGen.genKeyPair().getPublic().getEncoded();
+	        clientPrivateKey=keyGen.generateKeyPair().getPrivate().getEncoded();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	// parse and process user input
 	// if 'list', then list all the online users
 	// if 'send', then send content to the target user

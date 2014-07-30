@@ -1,5 +1,9 @@
 package server;
 
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -9,11 +13,14 @@ public class UsersInfoDatabase {
 	static UsersInfoDatabase instance=null;
 	static String dataName="server/users.dat";
 	
-	EncryptDatabase cipher = null;
+	
+	EncryptDatabase encrypt = null;
+	DecryptDataBase decrypt=null;
 	public  HashMap<String,String> users=null;
 	
 	private UsersInfoDatabase(){
-		cipher = new EncryptDatabase();
+		encrypt = new EncryptDatabase(Server.publicKey,Server.privateKey);
+		decrypt = new DecryptDataBase(Server.publicKey,Server.privateKey,readByteFromFile(UsersInfoDatabase.dataName));
 		users = readFromFile();
 	}
 	
@@ -26,9 +33,33 @@ public class UsersInfoDatabase {
 		}
 		return ret;
 	}
+	
+	// read bytes from a file
+	private  byte[] readByteFromFile(String fileName) {
+		File f = new File(fileName);
+		byte[] buffer=null;
+		try {
+			if (f.length() > Integer.MAX_VALUE)
+				System.out.println("File is too large");
+	
+			buffer = new byte[(int) f.length()];
+			InputStream ios;
+				ios = new FileInputStream(f);
+			DataInputStream dis = new DataInputStream(ios);
+			dis.readFully(buffer);
+			dis.close();
+			ios.close();
+		} catch (Exception e) {
+			System.err.println("read file error");
+			System.exit(0);
+		};
+		
+		return buffer;
+		
+	}
 	protected HashMap<String,String> readFromFile(){
 		HashMap<String,String> users = new HashMap<String,String>();
-		String plain_text = DecryptDataBase.getInstance().decryptFile(UsersInfoDatabase.dataName);
+		String plain_text = new String(decrypt.decrypt());
 		//System.out.println("Decrypted file: " + plain_text);
 		for(String pair : plain_text.split(";")){
 			String[] strs = pair.split(":");
@@ -38,7 +69,8 @@ public class UsersInfoDatabase {
 	}
 	protected void encrypt2file(String targetFile){
 		String plain_text = this.getUserPasswds();
-		cipher.encrypt2file(plain_text, targetFile,Server.public_key_filename,Server.private_key_filename);
+		byte[] cipher = encrypt.getEncryptedMessage(plain_text);
+		encrypt.write2file(targetFile, cipher);
 	}
 	
 	public static UsersInfoDatabase getInstance(){
