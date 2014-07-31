@@ -15,6 +15,7 @@ import java.util.Arrays;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+
 public class Decrypt {
 	static int KEY_LEN=256;
 	static boolean DEBUG = false;
@@ -28,10 +29,20 @@ public class Decrypt {
 
      
      protected Decrypt(byte[] publicKey,byte[] privateKey,byte[] cipher_text){
+
     	 this.publicKey=publicKey;
     	 this.privateKey=privateKey;
     	 this.cipher_text=cipher_text;
-    	 getKeyAndCipher(cipher_text);      	// get public key
+    	 try{
+    		 getKeyAndCipher(cipher_text);      	// get public key
+    	 }catch(Exception e){
+    		 System.err.println("create Decrypt object failed, cipher size: " +cipher_text.length);
+    		 if(cipher_text==null){
+    			 System.err.println("cipher_text is null");
+    		 }
+    		 System.err.println(e.getMessage());
+    		 System.exit(0);
+    	 }
      }
      
 
@@ -43,10 +54,13 @@ public class Decrypt {
 			Cipher secCipher = Cipher.getInstance("AES");
 			SecretKey aesKey=null;
 			// verify and decrypt aes key
+	    	//System.out.println("decrypt function");
 				aesKey=getSecKey();
 			// decryt cipher text
+		    //	System.out.println("decrypt function");
 	     	secCipher.init(Cipher.DECRYPT_MODE,aesKey);
 	     	 plaintext=secCipher.doFinal(cipher_text);
+	     //	System.out.println("decrypt function");
 //     	   if(Client.DEBUG)
 //	     	for(byte b : plaintext){
 //	     		System.out.print((char)b);
@@ -104,10 +118,14 @@ public class Decrypt {
 	     }
 	     return true;
      }
-	 public  void getKeyAndCipher(byte[] bytes){
+	 public  void getKeyAndCipher(final byte[] bytes){
+		 	//System.out.println("getKeyAndCipher ");
 	      this.signature=Arrays.copyOfRange(bytes,0,KEY_LEN);
+			// System.out.println("getKeyAndCipher ");
 	      this.aesKeyEncyrpted=Arrays.copyOfRange(bytes,KEY_LEN,2*KEY_LEN);
+			// System.out.println("getKeyAndCipher ");
 	      this.cipher_text=Arrays.copyOfRange(bytes,2*KEY_LEN,bytes.length);
+			// System.out.println("getKeyAndCipher ");
 
 	      if(DEBUG){
 		      System.out.println("Signature Hex:");

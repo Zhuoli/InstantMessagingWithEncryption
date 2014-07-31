@@ -101,8 +101,12 @@ public class ClientHandler {
 		
 		try {
 			this.out.writeBytes(str+'\n');
+			//System.out.println("Send byte length: " + str.length());
 		} catch (IOException e) {
-			System.err.println("Send failed");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.err.println("Send failed, message length: "+str.length());
+			System.err.println(e.getMessage());
 			System.exit(0);
 			return false;
 		}

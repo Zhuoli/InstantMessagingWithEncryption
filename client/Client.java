@@ -40,7 +40,7 @@ public class Client {
 			c2clientThread =Client2Client.getInstance(user);
 			Thread.sleep(1000);
 			c2server =Client2Server.getInstance(user);
-			boolean state = c2server.authTheUser();
+			boolean state = c2server.requestUpdateUsersInfo();
 			// if auth. failed
 			if(!state){
 				System.out.println("User name or password not correct, please try again");

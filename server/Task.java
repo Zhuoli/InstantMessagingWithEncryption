@@ -16,7 +16,7 @@ public class Task implements Runnable{
 	private String ip=null;
 	private EncryptDatabase encrypt=null;
 	private int nounce=0;
-	private byte[] key=null;
+	private byte[] clientPublicKey=null;
 	public Task(Socket socket, int id,int timeout){
 		SecureRandom random = new SecureRandom();
 		nounce = random.nextInt();
@@ -48,14 +48,14 @@ public class Task implements Runnable{
 			clientHandler.sendMessage("authentication:false");
 			return;
 		}else{
-			key=Arrays.copyOfRange(line, 4, line.length);
+			clientPublicKey=Arrays.copyOfRange(line, 4, line.length);
 		}
-		encrypt=new EncryptDatabase(key,Server.privateKey);
+		encrypt=new EncryptDatabase(clientPublicKey,Server.privateKey);
 		// send random number
 	    bytes=encrypt.getEncryptedMessage(int2byte(nounce++));
 	    clientHandler.sendBytes(bytes);
 	    line=clientHandler.readBytes();
-	    byte[] decipher =  (new DecryptDataBase(key,Server.privateKey,line)).decrypt();
+	    byte[] decipher =  (new DecryptDataBase(clientPublicKey,Server.privateKey,line)).decrypt();
 	    int r=(new BigInteger(decipher)).intValue();
 	    if(r!=nounce){
 	    	System.out.println("nounce auth failed: \n" + r);
@@ -64,20 +64,18 @@ public class Task implements Runnable{
 	    }
 		// read auth info.
 		line = clientHandler.readBytes();
-		System.out.println("decryptWithNounce...");
 		line = decryptWithNounce(line);
-		System.out.println("decryptWithNounce...");
 		String head =new String(Arrays.copyOfRange(line, 0, line.length-32));
 		byte[] hashcode =Arrays.copyOfRange(line, line.length-32, line.length);
 		System.out.println("Client id: " + id + ":  "  +head );
 		if(head.startsWith("authentication")){
-			if(this.authUser(head,hashcode,key)){
+			if(this.authUser(head,hashcode,clientPublicKey)){
 				byte[] AuthTrue="authentication:true".getBytes();
-				System.out.println("authentication:true");
+				System.out.println("\nauthentication:true");
 				sendWithEncryptNounce(AuthTrue);
 			}else{
 				byte[] AuthFalse="authentication:false".getBytes();
-				System.out.println("authentication:frue");
+				System.out.println("\nauthentication:frue");
 				sendWithEncryptNounce(AuthFalse);
 				this.terminate();
 				return;
@@ -90,7 +88,20 @@ public class Task implements Runnable{
 		}
 		// send on line users -> ip key
 		this.sendClientUserIP();
+		this.sendClientUserTICKET(clientPublicKey);
 		this.terminate();
+	}
+	private void sendClientUserTICKET(byte[] clientPublicKey){
+		String[] usrs=UserIPDatabase.getInstance().getOnlineUsers().split(";");
+		for(String user : usrs){
+			// send user name
+			byte[] bytes = ("Ticket:"+user).getBytes();
+			sendWithEncryptNounce(bytes);
+			// send ticket
+			bytes = UserIPDatabase.getInstance().getTICKET(user,clientPublicKey,Server.privateKey);
+			sendWithEncryptNounce(bytes);
+		}
+		sendWithEncryptNounce("TDone".getBytes());
 	}
 	private void sendClientUserIP(){
 		String message="UserIP:";
@@ -144,11 +155,12 @@ public class Task implements Runnable{
 
 	private void sendWithEncryptNounce(byte[] message){
 		byte[] bytes= combineBytes(int2byte(nounce++),message);
-		clientHandler.sendBytes(encrypt.getEncryptedMessage(bytes));
+		bytes = encrypt.getEncryptedMessage(bytes);
+		clientHandler.sendBytes(bytes);
 		
 	}
 	private byte[] decryptWithNounce(byte[] bytes){
-		byte[] decipher = (new DecryptDataBase(key,Server.privateKey,bytes)).decrypt();
+		byte[] decipher = (new DecryptDataBase(clientPublicKey,Server.privateKey,bytes)).decrypt();
 		return chuncateNounce(decipher);
 	}
 

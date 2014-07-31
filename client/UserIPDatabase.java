@@ -4,9 +4,13 @@ import java.util.HashMap;
 
 public class UserIPDatabase {
 	private HashMap<String,String> user_IP = null;
+	private HashMap<String,byte[]> user_TICKET=null;
+	private HashMap<String,byte[]> user_KEY = null;
 	private static UserIPDatabase instance = null;
 	private UserIPDatabase(){
 		user_IP=new HashMap<String,String>();
+		user_TICKET = new HashMap<String,byte[]>();
+		user_KEY = new HashMap<String,byte[]>();
 	}
 	public static UserIPDatabase getInstance(){
 		if(instance==null){
@@ -23,8 +27,30 @@ public class UserIPDatabase {
 		}
 		return users;
 	}
+	
 	public boolean hasThisUser(String name){
 		return user_IP.containsKey(name);
+	}
+	
+	protected void putTICKET(String name,byte[] t){
+		user_TICKET.put(name, t);
+	}
+	protected void putKEY(String name, byte[] k){
+		user_KEY.put(name, k);
+	}
+	protected byte[] getTICKET(String name){
+		byte[] bytes=null;
+		if(user_TICKET.containsKey(name)){
+			bytes=user_TICKET.get(name);
+		}
+		return bytes;
+	}
+	protected byte[] getKEY(String name){
+		byte[] bytes=null;
+		if(user_KEY.containsKey(name)){
+			bytes=user_KEY.get(name);
+		}
+		return bytes;
 	}
 	
 	public String getIP(String name){

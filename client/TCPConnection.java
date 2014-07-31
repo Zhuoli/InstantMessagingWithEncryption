@@ -68,6 +68,7 @@ public class TCPConnection {
 			this.out.writeBytes(str+'\n');
 		} catch (IOException e) {
 			System.err.println("Send failed");
+			System.err.println(e.getMessage());
 			System.exit(0);
 			return false;
 		}

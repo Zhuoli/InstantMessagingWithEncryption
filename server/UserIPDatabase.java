@@ -50,6 +50,21 @@ public class UserIPDatabase {
 		}
 		return ret;
 	}
+	
+	public byte[] getTICKET(String user,byte[] content, byte[] privateKey){
+		byte[] ret=null;
+		synchronized(user_key){
+			if(user_key.containsKey(user)){
+				byte[] pub_key = user_key.get(user);
+				EncryptDatabase encrypt = new EncryptDatabase(pub_key,privateKey);
+				ret=encrypt.getEncryptedMessage(content);
+			}else{
+				System.out.println("Don't have ticket for user: "+user);
+			}
+		}
+		return ret;
+		
+	}
 	public void deleteUser(String userName){
 		synchronized(user_IP){
 			if(user_IP.containsKey(userName)){
@@ -64,6 +79,15 @@ public class UserIPDatabase {
 			for(String user : user_IP.keySet()){
 				ip=user_IP.get(user);
 				message+=user+'/'+ip+';';
+			}
+		}
+		return message;
+	}
+	public String getOnlineUsers(){
+		String message="";
+		synchronized(user_IP){
+			for(String user : user_IP.keySet()){
+				message+=user+";";
 			}
 		}
 		return message;

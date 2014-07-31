@@ -158,7 +158,8 @@ public class Client2Server{
 		return true;
 	}
 	private byte[] decryptWithNounce(byte[] message){
-		byte[] decipher =(new Decrypt(serverKey,Client.clientPrivateKey,message)).decrypt();
+		Decrypt decrypt = new Decrypt(serverKey,Client.clientPrivateKey,message);
+		byte[] decipher =decrypt.decrypt();
 		return chuncateNounce(decipher);
 	}
 	private void sendEncryptWithNounce(byte[] message){
@@ -204,14 +205,36 @@ public class Client2Server{
 
 
 	protected boolean requestUpdateUsersInfo(){
-		this.authTheUser();
+		if(!this.authTheUser()){
+			return false;
+		}
 		byte[] bytes=connection.readBytes();
 		bytes=this.decryptWithNounce(bytes);
 		String message = new String(bytes);
+	//	System.out.println(message);
 		if(message!=null && message.startsWith("UserIP:") && message.length()>"UserIP:;".length()){
 			UserIPDatabase.getInstance().insertUsers(message.substring(message.indexOf("UserIP:")+7));
 		}else{
 			return false;
+		}
+		while(connection!=null && (bytes=connection.readBytes())!=null){
+			bytes=this.decryptWithNounce(bytes);
+			String head = (new String(bytes)).toLowerCase();
+			//System.out.println(head);
+			if(head.startsWith("ticket:")){
+				String name = head.split(":")[1];
+				byte[] ticket=connection.readBytes();
+				ticket=this.decryptWithNounce(ticket);
+				UserIPDatabase.getInstance().putTICKET(name, ticket);
+			}else{
+				//System.out.println("Got: "+head);
+				break;
+			}
+		}
+		if(connection==null){
+			System.out.println("connection null");
+		}else if(bytes==null){
+			System.out.println("bytes null");
 		}
 		//System.out.println("Server: " + message);
 		connection.terminate();
