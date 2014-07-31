@@ -20,9 +20,9 @@ public class Client2Server{
 	static private String hostname= "";
 	static private int port=0;
 	static private int timeout=10000;
+	static protected byte[] serverKey=null;
 	
 	
-	protected byte[] serverKey=null;
 	TCPConnection connection =null;
 	private User user=null;
 	private Encrypt encrypt=null;
