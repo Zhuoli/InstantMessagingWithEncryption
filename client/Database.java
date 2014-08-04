@@ -2,23 +2,31 @@ package client;
 
 import java.util.HashMap;
 
-public class UserIPDatabase {
+public class Database {
 	private HashMap<String,String> user_IP = null;
 	private HashMap<String,byte[]> user_TICKET=null;
 	private HashMap<String,byte[]> user_KEY = null;
-	private static UserIPDatabase instance = null;
-	private UserIPDatabase(){
+	private static Database instance = null;
+	private Database(){
 		user_IP=new HashMap<String,String>();
 		user_TICKET = new HashMap<String,byte[]>();
 		user_KEY = new HashMap<String,byte[]>();
 	}
-	public static UserIPDatabase getInstance(){
+	public static Database getInstance(){
 		if(instance==null){
-			instance = new UserIPDatabase();
+			instance = new Database();
 		}
 		return instance;
 	}
 	
+	public DestinationUser getDestUser(String targetName){
+		DestinationUser obj = new DestinationUser();
+		obj.setIP(this.getIP(targetName));
+		obj.setPort(this.getPort(targetName));
+		obj.setTicket(this.getTICKET(targetName));
+		
+		return obj;
+	}
 	
 	public String onlineUsers(){
 		String users = "";
@@ -76,11 +84,9 @@ public class UserIPDatabase {
 	}
 	public byte[] getKey(String userName){
 		byte[] ret=null;
-//		synchronized(user_key){
-//			if(user_key.containsKey(userName)){
-//				ret = user_key.get(userName);
-//			}
-//		}
+		if(user_KEY.containsKey(userName)){
+			ret = user_KEY.get(userName);
+		}
 		return ret;
 	}
 

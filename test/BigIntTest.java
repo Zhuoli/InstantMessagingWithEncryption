@@ -1,13 +1,21 @@
 package test;
 
+import java.util.HashMap;
+import java.util.Set;
+
 
 public class BigIntTest {
 
 	public static void main(String[] args){
-		int[] nounce={0};
-		for(int i=0;i<5;i++){
-			nounce[0]++;
-			System.out.println(nounce[0]);
+		HashMap as = new HashMap(3);
+		HashMap<String,String> map = new HashMap<String,String>();
+		map.put("a", "1");
+		map.put("b", "2");
+		map.put("c", "3");
+		Set<String> set = map.keySet();
+		set.add("d");
+		for(String s : map.keySet()){
+			System.out.println(s);
 		}
 	}
 }

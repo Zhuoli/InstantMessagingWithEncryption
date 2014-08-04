@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 public class TCPConnection {
@@ -42,14 +41,6 @@ public class TCPConnection {
 	}
 	
 	public boolean sendMessage(String message){
-//		try {
-//			this.out.writeBytes(message+'\n');
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//			return false;
-//		}
-//		return true;
 		try {
 			return sendBytes(message.getBytes("US-ASCII"));
 		} catch (UnsupportedEncodingException e) {
@@ -62,7 +53,6 @@ public class TCPConnection {
 			stb.append(i+" ");
 		}
 		String str = stb.toString();
-	//	System.out.println("Gonna send:\n" +str);
 		
 		try {
 			this.out.writeBytes(str+'\n');
@@ -75,19 +65,6 @@ public class TCPConnection {
 		return true;
 	}
 	public String readMessage(){
-//		//Date date = new Date();
-//		//System.out.println("read time: " + date.toString());
-//		try {
-//			return in.readLine();
-//		}catch(SocketTimeoutException e){
-//			System.err.println("Socket timeout. timeout=="+timeout);
-//			return null;
-//			
-//		}catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//			return null;
-//		}
 		return new String(readBytes());
 	}
 	public byte[] readBytes(){

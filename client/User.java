@@ -20,6 +20,7 @@ public class User {
 	}
 	
 	public static User login(){
+		System.out.println("Welcome to the Encypted Instant Messaging App.\nClient Running...");
 		if(User.user ==null){
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 			System.out.println("Please input user name, type 'return' when finish");

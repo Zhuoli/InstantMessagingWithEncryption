@@ -16,19 +16,7 @@ public class Encrypt {
 		this.privateKey=privateKey;
 	}
 	
-   protected void encrypt2file(String plaintext, String output_file){
 
-		// init RSA keys
-
-			byte[] encrypted_message = getEncryptedMessage(plaintext);
-			// write crypted data 2 file
-			try {
-				write2file(output_file,encrypted_message);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-   }
    
    protected byte[] getEncryptedMessage(String plain_text){
 	   Key aesKey;
@@ -85,36 +73,7 @@ public class Encrypt {
 	   return outputStream.toByteArray();
    }
    
-  		protected void write2file(String output_file,byte[] message){
-  			/** write to file **/
-            try {
-				writeByteToFile(new File(output_file),message);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				System.err.println("Write failed");
-				e.printStackTrace();
-				System.exit(0);
-			}
-		   if(Client.DEBUG){
-		  	  // write signature
-			   System.out.println("Signature in HEX");
-	           System.out.println("Length: "+ signature.length);
-			    for (byte b : signature){
-			    	System.out.print(String.format("%02X ", b));
-			    }
-                System.out.println("\nAES encrypted key in HEX");
-                System.out.println("Length: "+ aesKeyEncyrpted.length);
-                for (byte b : aesKeyEncyrpted){
-              	  System.out.print(String.format("%02X ", b));
-                }
-         	   System.out.println("\nCiphter Text");
-         	   for (byte b : cipherText){
-         		   System.out.print(String.format("%02X ", b));
-         	   }
-         	   System.out.println();
-                
-           }
-  		}
+
   		private void rsaEncrypt( Key aesKey) throws Exception{
   			Cipher publicChiper = Cipher.getInstance("RSA");
 			Signature sig = Signature.getInstance("SHA512withRSA");
@@ -152,37 +111,7 @@ public class Encrypt {
   		}
 
 
-	// read bytes from a file
-	private static byte[] readByteFromFile(File f) throws Exception {
 
-		if (f.length() > Integer.MAX_VALUE)
-			System.out.println("File is too large");
 
-		byte[] buffer = new byte[(int) f.length()];
-		InputStream ios = new FileInputStream(f);;
-		DataInputStream dis = new DataInputStream(ios);
-		dis.readFully(buffer);
-		dis.close();
-		ios.close();
 
-		return buffer;
-	}
-        private static boolean writeByteToFile(File f,byte[] bytes) throws Exception{
-          FileOutputStream stream = new FileOutputStream(f);
-          try{
-              stream.write(bytes);
-          }finally{
-              stream.close();
-          }
-              return true; 
-        }
-        private static boolean appendByteToFile(File f,byte[] bytes) throws Exception{
-          FileOutputStream stream = new FileOutputStream(f,true);
-          try{
-              stream.write(bytes);
-          }finally{
-              stream.close();
-          }
-              return true; 
-        }
 }

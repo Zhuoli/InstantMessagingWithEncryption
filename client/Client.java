@@ -1,113 +1,84 @@
 package client;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-
 
 public class Client {
 	static boolean DEBUG=false;
 	static Client2Server c2server=null;
 	static Client2Client c2clientThread=null;
-	static  Integer clientPort=0;
 	static byte[] clientPublicKey=null;
 	static byte[] clientPrivateKey=null;
-	
 	static User user = null;
-	// terminate App. properly in case of user interrupting
-	static class ExitHandler extends Thread{
-		private ExitHandler(){
+	
+	// terminate App. properly in case of user interrupting control^c
+	public static class ExitHandler extends Thread {
+		protected ExitHandler(){
 			super("Exit Handler");
 		}
 		public void run(){
 			Client.terminate();
 		}
-		public static ExitHandler getInstance(){
+		private static ExitHandler getInstance(){
 			return new ExitHandler();
 		}
 	}
 	
 	public static void main(String[] argvs){
-		System.out.println("Welcome to the Encypted Instant Messaging App.\nClient Running...");
+		Object clientPortSynchronism = new Object();
 		user = User.login();
 		generateKeyPair();
 		// register the terminate Thread
-		//Runtime.getRuntime().addShutdownHook(Client.ExitHandler.getInstance());
+		Runtime.getRuntime().addShutdownHook(Client.ExitHandler.getInstance());
 		try{
-			c2clientThread =Client2Client.getInstance(user);
-			Thread.sleep(1000);
+			// set up a listen socket port to connection from other clients
+			c2clientThread =Client2Client.getInstance(user,clientPortSynchronism);
+			synchronized(clientPortSynchronism){
+				clientPortSynchronism.wait();
+			}
 			c2server =Client2Server.getInstance(user);
-			boolean state = c2server.requestUpdateUsersInfo();
 			// if auth. failed
-			if(!state){
+			if(!c2server.requestUpdateUsersInfo()){
 				System.out.println("User name or password not correct, please try again");
 				terminate();
 			}else{
 				System.out.println("Auth succeed");
-				// set up a listen socket port to connection from other clients
 				// interact console
-				while(true){
-					String userInput = user.getUserInput();
-					Client.processUserInput(userInput);
-				}
+				userInteractive(user);
 			}
 		}catch(Exception e){
 			System.err.println("Exception occured, client gonna quit");
 			terminate();
 		}
+		
 
 	}
-	private static void generateKeyPair(){
-//		 try {
-//			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-//	        keyGen.initialize(2048);
-//	        clientPublicKey = keyGen.genKeyPair().getPublic().getEncoded();
-//	        clientPrivateKey=keyGen.generateKeyPair().getPrivate().getEncoded();
-//		} catch (NoSuchAlgorithmException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		clientPublicKey=readByteFromFile("./client/public_key.der");
-		clientPrivateKey=readByteFromFile("./client/private_key.der");
-		
-	}
-	
-	// read bytes from a file
-	private static  byte[] readByteFromFile(String fileName) {
-		File f = new File(fileName);
-		if(!f.isFile()){
-			f=new File("./src"+fileName.substring(1));
+	/**
+	 * Interact with user's input
+	 * @param user
+	 */
+	private static void userInteractive(User user){
+		while(true){
+			String userInput = user.getUserInput();
+			Client.processUserInput(userInput);
 		}
-		byte[] buffer=null;
-		try {
-			if (f.length() > Integer.MAX_VALUE)
-				System.out.println("File is too large");
+	}
 	
-			buffer = new byte[(int) f.length()];
-			InputStream ios;
-				ios = new FileInputStream(f);
-			DataInputStream dis = new DataInputStream(ios);
-			dis.readFully(buffer);
-			dis.close();
-			ios.close();
-		} catch (Exception e) {
-			System.err.println("read file error: "+System.getProperty("user.dir")+'/'+fileName);
-			System.exit(0);
-		};
-		
-		return buffer;
+	/**
+	 * generate key pair
+	 */
+	private static void generateKeyPair(){
+		clientPublicKey=FileOperation.readByteFromFile("./client/public_key.der");
+		clientPrivateKey=FileOperation.readByteFromFile("./client/private_key.der");
 		
 	}
+	
+
 	// parse and process user input
 	// if 'list', then list all the online users
 	// if 'send', then send content to the target user
 	public static void processUserInput(String userInput){
 		userInput=userInput.toLowerCase();
 		if(userInput.equals("list") || userInput.equals("ls")){
-			System.out.println("users: " + UserIPDatabase.getInstance().onlineUsers());
+			System.out.println("users: " + Database.getInstance().onlineUsers());
 		}else if(userInput.toLowerCase().startsWith("send")){
 			String[] strs = userInput.split(" ");
 			if(strs.length<3){
@@ -123,7 +94,7 @@ public class Client {
 				if(strs[1].equals(user.getUsername())){
 					brr =Client.clientPublicKey;
 				}else{
-					brr=UserIPDatabase.getInstance().getKey(strs[1]);
+					brr=Database.getInstance().getKey(strs[1]);
 				}
 				for(int i : brr){
 					System.out.print(" "+i+" ");
@@ -136,6 +107,7 @@ public class Client {
 		}
 	}
 
+	// terminate appropriately
 	private static synchronized void terminate(){
 		if(Client.DEBUG){
 			System.out.println("Hi, terminate works");
