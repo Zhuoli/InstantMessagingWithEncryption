@@ -1,21 +1,18 @@
 package server;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
 public class Server {
-	static final int SERVER_MAX_NUM=10;
 	static final boolean DEBUG = false;
+	static final int SERVER_MAX_NUM=10;
 	static int count=0;
 	static ExecutorService executor=null;
 	static AdminInteractive admin = null;
@@ -80,8 +77,8 @@ public class Server {
 			BufferedReader br = new BufferedReader(new FileReader(settingPath));
 			PortNumber=Integer.parseInt(br.readLine().split(":")[1].trim());
 			clientPort=Integer.parseInt(br.readLine().split(":")[1].trim());
-			publicKey = readByteFromFile(br.readLine().split(":")[1].trim());
-			privateKey=readByteFromFile( br.readLine().split(":")[1].trim());
+			publicKey = FileOperation.readByteFromFile(br.readLine().split(":")[1].trim());
+			privateKey=FileOperation.readByteFromFile( br.readLine().split(":")[1].trim());
 			br.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -97,35 +94,6 @@ public class Server {
 			System.err.println("Client configure file 'setting.conf' format not correct:\nhostname: IP\nport: number");
 		}
 	}
-    /**********/
-    private static boolean isFile(String a){
 
-        if(!new File(a).isFile()){
-          return false;
-        }
-      return true;
-    }	
-	// read bytes from a file
-	private static  byte[] readByteFromFile(String fileName) {
-		File f = new File(fileName);
-		byte[] buffer=null;
-		try {
-			if (f.length() > Integer.MAX_VALUE)
-				System.out.println("File is too large");
-	
-			buffer = new byte[(int) f.length()];
-			InputStream ios;
-				ios = new FileInputStream(f);
-			DataInputStream dis = new DataInputStream(ios);
-			dis.readFully(buffer);
-			dis.close();
-			ios.close();
-		} catch (Exception e) {
-			System.err.println("read file error");
-			System.exit(0);
-		};
-		
-		return buffer;
-		
-	}
+
 }

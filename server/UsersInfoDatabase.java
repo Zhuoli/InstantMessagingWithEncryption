@@ -113,13 +113,7 @@ public class UsersInfoDatabase {
 		return false;
 		
 	}
-	private String getAscii(byte[] bytes){
-		StringBuilder str = new StringBuilder();
-		for(int i=0;i<bytes.length;i++){
-			str.append(bytes[i]+" ");
-		}
-		return str.toString();
-	}
+
 	// Hash a string using SHA256, 
 	// Given: PlanText
 	// Return: hashed 32 len byte

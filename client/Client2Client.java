@@ -34,7 +34,7 @@ public class Client2Client implements Runnable{
 	 * @param content
 	 * @return true if send succeed, else false
 	 */
-	public boolean send2client(String targetName, String content){
+	public boolean send2client(String targetName, String content)throws Exception{
 		int[] nounce ={0};
 		nounce[0] = (new SecureRandom()).nextInt();
 		if(!Database.getInstance().hasThisUser(targetName)){

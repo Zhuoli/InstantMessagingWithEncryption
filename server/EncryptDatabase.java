@@ -151,21 +151,7 @@ public class EncryptDatabase {
   		}
 
 
-	// read bytes from a file
-	private static byte[] readByteFromFile(File f) throws Exception {
 
-		if (f.length() > Integer.MAX_VALUE)
-			System.out.println("File is too large");
-
-		byte[] buffer = new byte[(int) f.length()];
-		InputStream ios = new FileInputStream(f);;
-		DataInputStream dis = new DataInputStream(ios);
-		dis.readFully(buffer);
-		dis.close();
-		ios.close();
-
-		return buffer;
-	}
         private static boolean writeByteToFile(File f,byte[] bytes) throws Exception{
           FileOutputStream stream = new FileOutputStream(f);
           try{
@@ -175,13 +161,5 @@ public class EncryptDatabase {
           }
               return true; 
         }
-        private static boolean appendByteToFile(File f,byte[] bytes) throws Exception{
-          FileOutputStream stream = new FileOutputStream(f,true);
-          try{
-              stream.write(bytes);
-          }finally{
-              stream.close();
-          }
-              return true; 
-        }
+
 }

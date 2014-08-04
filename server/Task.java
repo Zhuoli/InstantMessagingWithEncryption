@@ -36,12 +36,12 @@ public class Task implements Runnable{
 
 	@Override
 	public void run() {
+		byte[] line=null;
+		byte[] bytes=null;
 		
 		// TODO Auto-generated method stub
 		System.out.println("Welcome new users, ID: " + id +'\n');
 		ip=clientHandler.getClientIPAddress();
-		byte[] line=null;
-		byte[] bytes=null;
 		// read client public key
 		line = clientHandler.readBytes();
 		if(!(new String(Arrays.copyOfRange(line, 0, 4))).startsWith("key")){

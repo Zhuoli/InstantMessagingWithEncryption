@@ -45,7 +45,7 @@ public class Client {
 				userInteractive(user);
 			}
 		}catch(Exception e){
-			System.err.println("Exception occured, client gonna quit");
+			//System.err.println("Exception occured, client gonna quit");
 			terminate();
 		}
 		
@@ -55,7 +55,7 @@ public class Client {
 	 * Interact with user's input
 	 * @param user
 	 */
-	private static void userInteractive(User user){
+	private static void userInteractive(User user)throws Exception{
 		while(true){
 			String userInput = user.getUserInput();
 			Client.processUserInput(userInput);
@@ -75,7 +75,7 @@ public class Client {
 	// parse and process user input
 	// if 'list', then list all the online users
 	// if 'send', then send content to the target user
-	public static void processUserInput(String userInput){
+	public static void processUserInput(String userInput)throws Exception{
 		userInput=userInput.toLowerCase();
 		if(userInput.equals("list") || userInput.equals("ls")){
 			System.out.println("users: " + Database.getInstance().onlineUsers());

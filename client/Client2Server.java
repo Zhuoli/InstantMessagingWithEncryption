@@ -82,7 +82,7 @@ public class Client2Server{
 	 * @return
 	 */
 	
-	public  boolean authTheUser(){
+	public  boolean authTheUser() throws Exception{
 		if(user==null){
 			System.out.println("User is null");
 			return false;
@@ -91,7 +91,7 @@ public class Client2Server{
 			connection = TCPConnection.setUpConnection(hostname, port,timeout);
 		}catch(Exception e){
 			System.err.println("Failed to open server's Socket!");
-			return false;
+			throw e;
 		}
 		//start auth...
 		byte[] message=null;
@@ -154,7 +154,7 @@ public class Client2Server{
 	}
 
 
-	protected boolean requestUpdateUsersInfo(){
+	protected boolean requestUpdateUsersInfo() throws Exception{
 		if(!this.authTheUser()){
 			return false;
 		}

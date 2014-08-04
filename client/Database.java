@@ -69,7 +69,7 @@ public class Database {
 		return Integer.parseInt(user_IP.get(name).split(":")[1]);
 		
 	}
-	protected void update(){
+	protected void update() throws Exception{
 		Client.c2server.requestUpdateUsersInfo();
 	}
 	

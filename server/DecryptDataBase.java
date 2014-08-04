@@ -1,10 +1,5 @@
 package server;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -127,43 +122,5 @@ public class DecryptDataBase {
 		  }
 
 	  }
-	  private static byte[] readByteFromFile(File f) throws Exception{
 
-	    if(f.length() > Integer.MAX_VALUE)
-	      System.out.println("File is too large");
-
-	    byte[] buffer = new byte[(int)f.length()];
-	    InputStream ios = new FileInputStream(f);
-	    DataInputStream dis = new DataInputStream(ios);
-	    dis.readFully(buffer);
-	    dis.close();
-	    ios.close();
-
-	    return buffer;
-	  }
-	  private static boolean writeByteToFile(File f,byte[] bytes) throws Exception{
-          FileOutputStream stream = new FileOutputStream(f);
-          try{
-              stream.write(bytes);
-          }finally{
-              stream.close();
-          }
-              return true; 
-        }
-	  private static boolean isDecryptInputError(String public_key_filename, String private_key_filename,String cipher_filename){
-            if(!new File(public_key_filename).isFile()){
-              System.out.println("File: " + public_key_filename + " not exist or not a file");
-              return true;
-            }   
-            if(!new File(private_key_filename).isFile()){
-              System.out.println("File: " + private_key_filename + " not exist or not a file");
-              return true;
-            }  
-            if(!new File(cipher_filename).isFile()){
-              System.out.println("File: " + cipher_filename + " not exist or not a file");
-              return true;
-            }  
-
-          return false;
-        }  
 }
