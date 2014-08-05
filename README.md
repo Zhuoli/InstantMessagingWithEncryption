@@ -7,7 +7,8 @@ User log in the client application, client will send user name and hashed passwo
   * compile:make
   * run server:make server
   * run client:make client
-## Application comands:
+
+##Application comands:
 ### server:
   *'ls' or 'list'
 
